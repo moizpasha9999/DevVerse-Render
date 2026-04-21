@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DevVerse — Multi-Section Dashboard</title>
+
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- AOS -->
+  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root{
+      --primary: #0d6efd;
+
+      /* general UI variables (will be overridden by body[data-theme]) */
+      --bg: #0d1114;
+      --surface-glass: rgba(255,255,255,0.06);
+      --surface-strong: rgba(255,255,255,0.09);
+      --muted: rgba(255,255,255,0.7);
+      --muted-2: rgba(255,255,255,0.5);
+      --neon: rgba(13,110,253,0.12);
+      --glow: 0 0 10px rgba(13,110,253,0.6), 0 0 20px rgba(13,110,253,0.4);
+      --text: #e6eef8;
+      --glass-border: rgba(255,255,255,0.05);
+      --card-shadow: 0 6px 30px rgba(2,6,23,0.6);
+    }
+
+    /* LIGHT THEME */
+    body[data-theme='light']{
+      --bg: #ffffff;
+      --surface-glass: rgba(15,23,42,0.03);
+      --surface-strong: rgba(15,23,42,0.05);
+      --muted: #6b7280; /* gray-500 */
+      --muted-2: #9ca3af;
+      --neon: rgba(13,110,253,0.06);
+      --glow: 0 6px 18px rgba(2,6,23,0.06);
+      --text: #1f2937;
+      --glass-border: rgba(15,23,42,0.04);
+      --card-shadow: 0 6px 24px rgba(15,23,42,0.06);
+    }
+
+    /* DARK THEME */
+    body[data-theme='dark']{
+      --bg: linear-gradient(180deg,#071019 0%, #0d1114 100%);
+      --surface-glass: rgba(255,255,255,0.04);
+      --surface-strong: rgba(255,255,255,0.06);
+      --muted: rgba(207,239,251,0.9);
+      --muted-2: rgba(207,239,251,0.7);
+      --neon: rgba(13,110,253,0.12);
+      --glow: 0 0 12px rgba(13,110,253,0.65), 0 0 26px rgba(13,110,253,0.35);
+      --text: #e6eef8;
+      --glass-border: rgba(255,255,255,0.05);
+      --card-shadow: 0 6px 30px rgba(2,6,23,0.6), var(--glow);
+    }
+
+    /* page basics */
+    html,body{height:100%; margin:0; font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto; -webkit-font-smoothing:antialiased;}
+    body{background:var(--bg); color:var(--text); transition:background .25s,color .25s;}
+    .text-muted { color: var(--muted-2) !important; }
+
+    /* scrollbars */
+    ::-webkit-scrollbar{width:8px;background:transparent}
+    ::-webkit-scrollbar-thumb{background:rgba(13,110,253,0.18);border-radius:8px}
+    ::-webkit-scrollbar-thumb:hover{background:rgba(13,110,253,0.32)}
+
+    /* SIDEBAR */
+    .sidebar{
+      width:260px;
+      background:var(--surface-glass);
+      backdrop-filter: blur(8px);
+      padding:22px 12px;
+      position:fixed; inset:0 auto 0 0;
+      box-shadow: var(--card-shadow);
+      transition: width .28s ease, left .28s ease, box-shadow .28s ease;
+      overflow-y:auto;
+      border-right:1px solid var(--glass-border);
+    }
+    .sidebar.collapsed{ width:72px; }
+
+    .brand{ font-weight:700; font-size:18px; padding:10px 14px; display:flex; align-items:center; gap:10px; color:var(--text); }
+    .sidebar .nav-link{ color:inherit; border-radius:8px; padding:10px 12px; display:flex; align-items:center; gap:12px; transition: all .22s ease; text-decoration:none; }
+    .sidebar .nav-link .label{ white-space:nowrap; transition: opacity .18s, transform .18s; }
+    .sidebar.collapsed .nav-link .label{ opacity:0; transform:translateX(-10px); pointer-events:none; }
+    .sidebar .nav-link:hover, .sidebar .nav-link.active{ background:var(--neon); color:var(--text); box-shadow: var(--glow); }
+
+    .sidebar-toggle{
+      position:absolute; top:14px; right:-18px;
+      width:36px; height:36px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+      cursor:pointer; background:var(--surface-strong); transition:transform .18s; border:1px solid var(--glass-border);
+      box-shadow: var(--glow);
+    }
+    .sidebar.collapsed .sidebar-toggle{ right:-14px; transform:rotate(180deg); }
+
+    /* MAIN */
+    .main{ margin-left:260px; padding:28px; transition:margin-left .28s ease;}
+    .sidebar.collapsed + .main{ margin-left:72px; }
+
+    /* GLASS CARDS */
+    .glass{
+      background:var(--surface-glass);
+      border-radius:12px;
+      padding:16px;
+      box-shadow: var(--card-shadow);
+      border:1px solid var(--glass-border);
+      transition: box-shadow .2s ease, transform .2s ease;
+    }
+    .glass:hover{ box-shadow:0 10px 40px rgba(2,6,23,0.12), var(--glow); }
+
+    /* PROJECT CARD hover */
+    .project-card{ transform-style:preserve-3d; transition:transform .45s cubic-bezier(.2,.9,.2,1), box-shadow .25s; overflow:hidden; border-radius:12px; border:0; background:transparent; }
+    .project-card:hover{ transform:translateY(-8px) rotateX(4deg) rotateY(6deg); box-shadow: var(--card-shadow); }
+
+    /* chart container to avoid scrollbar & overflow issues */
+    .chart-wrap{ position:relative; height:220px; overflow:hidden; border-radius:10px; }
+    canvas{ width:100% !important; height:100% !important; display:block; }
+
+    /* small screens */
+    @media (max-width:991px){
+      .sidebar{ left:-300px; }
+      .sidebar.show{ left:0; }
+      .main{ margin-left:0; padding:20px; }
+      .sidebar-toggle{ display:none; }
+    }
+
+    /*theme toggle*/
+    .theme-toggle {
+        position: fixed;
+        bottom: 20px; left: 20px;
+        width: 60px; height: 30px;
+        background: #e6e6e6;
+        border-radius: 30px;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 5px 8px; cursor: pointer;
+        overflow: hidden; z-index: 10;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        transition: background 0.4s;
+    }
+
+    .theme-toggle .icon { font-size: 14px; transition: color 0.4s; z-index:2; }
+    .theme-toggle .icon.sun { color: #f1c40f; }
+    .theme-toggle .icon.moon { color: #666; }
+    .theme-toggle .toggle-ball {
+        position: absolute; width: 24px; height: 24px; background: white;
+        border-radius: 50%; left: 4px; transition: all 0.4s ease; z-index:1;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    body.dark-theme .theme-toggle { background: #333; }
+    body.dark-theme .theme-toggle .icon.sun { color: #555; }
+    body.dark-theme .theme-toggle .icon.moon { color: #f1c40f; }
+    body.dark-theme .toggle-ball { transform: translateX(30px); background: #222; }
+
+  </style>
+</head>
+
+<body class="dark-theme" data-theme="light">
+
+    <body data-theme="dark" class="dark-theme">
+
+
+        <div class="app">
+            <!-- SIDEBAR -->
+            <!-- MAIN -->
+            <main id="main" class="main">
+                <!--Theme Toggle-->
+                <div class="theme-toggle" id="themeToggle">
+                    <i class="bi bi-sun-fill icon sun"></i>
+                    <i class="bi bi-moon-fill icon moon"></i>
+                    <div class="toggle-ball" id="toggleBall"></div>
+                </div>
+
+                <!-- Sections -->
+                <!-- Rest of sections unchanged (projects/messages/activity/settings) -->
+
+
+                <section id="activitySection" class="section">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="mb-0">Activity</h4>
+                        <small class="text-muted">Recent notifications</small>
+                    </div>
+                    <div class="glass p-3 notify-panel">
+                        <div class="d-flex align-items-start gap-3 mb-3">
+                            <i class="bi bi-people fs-3 text-primary"></i>
+                            <div>
+                                <div class="fw-bold">New follower — Ali Raza</div>
+                                <small class="text-muted">2 hours ago</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start gap-3 mb-3">
+                            <i class="bi bi-check-circle fs-3 text-success"></i>
+                            <div>
+                                <div class="fw-bold">Project "Landing Page" delivered</div>
+                                <small class="text-muted">Yesterday</small>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+
+            </main>
+        </div>
+        {% include 'profiles/base.html' %}
+
+
+        <script>
+            let activities = {}
+            activityPanel = document.querySelector(".notify-panel");
+            activityPanel.innerHTML = ""
+            function get_activities() {
+                fetch(window.location.origin + `/get_activity?user_name=${JSON.parse(localStorage.getItem("profile")).user_name}&password=${JSON.parse(localStorage.getItem("profile")).password}`).then((response) => {
+                    data = response.json();
+                    data.then((data) => {
+
+                        if (data["message"] == "Unauthenticated") {
+                            window.location.href = "/sign-in/";
+                        }
+                        else if (data["message"] == "Successfull") {
+                            let activities = data["activities"];
+                            console.log("here");
+                            console.log(activities);
+                            
+                            render_activities(activities);
+                        }
+                        else {
+                            console.log("REached else")
+                        }
+                    });
+                });
+            }
+            get_activities();
+            function render_activities(activities) {
+                let html = "";
+                document.querySelector(".notify-badge").classList.add("d-none");
+                activities.forEach((value) => {
+                    let type = value.activity;
+                    if (type == "FU")
+                        html += `
+                                    <div class="d-flex align-items-start gap-3 mb-3">
+                                        <i class="bi bi-people fs-3 text-primary"></i>
+                                        <div>
+                                            <div class="fw-bold">New follower — @${value.done_by}</div>
+                                            <small class="text-muted">${value.time}</small>
+                                        </div>
+                            `;
+                    if (type == "RM")
+                        html += `
+                                    <div class="d-flex align-items-start gap-3 mb-3 message-notification" id=${value.done_by}>
+                                        <i class="bi bi-people fs-3 text-primary"></i>
+                                        <div>
+                                            <div class="fw-bold"> @${value.done_by}-Send a Message</div>
+                                            <small class="text-muted">${value.time}</small>
+                                        </div>
+</div>
+
+                            `;
+                    else if (type == "LI")
+                        html += `
+                            <div class="d-flex align-items-start gap-3 mb-3">
+                                <i class="bi bi-check-circle fs-3 text-success"></i>
+                                <div>
+                                    <div class="fw-bold">${value.detail}</div>
+                                    <small class="text-muted">${value.time}</small>
+                             </div>
+</div>
+
+
+                            `;
+
+                });
+                activityPanel.innerHTML = html;
+                document.querySelectorAll(".message-notification").forEach((value) => {
+                    let id = value.id;
+                    console.log(id);
+                    value.addEventListener("click", () => {
+                        console.log("click");
+                        localStorage.setItem("inbox", id);
+                        window.location.href = "/messages/";
+                    });
+                });
+
+
+            }
+
+
+        </script>
+
+        <!-- Scripts (keep AOS, theme toggle, sidebar, tooltips, charts; remove sign-out login logic) -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+        <script>
+
+            AOS.init({ duration: 700, once: true });
+
+
+        </script>
+
+    </body>
+</html>
