@@ -249,7 +249,7 @@ class profile(APIView):
                     serializer_phone = serializer.PhoneSerializer(data={"profiles":profile_final, "number":profile["phone"]})
                     if serializer_phone.is_valid(): 
                         phone= serializer_phone.save()
-                        print(f"Phone {profile["phones"]}, has been updated to the database instance {profile_final.id}, with number: {models.Profiles.objects.get(id=profile_final.id).phones}")
+                        
                     print(f"errors: {serializer_phone.errors}")
             
             else:
