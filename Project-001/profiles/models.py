@@ -50,7 +50,9 @@ class Profiles(models.Model):
     def save(self, *args, **kwargs):
         self.password = services.encrypted(self.password)
         if not(self.profile_picture):
-            self.profile_picture = f"data:image/png;base64,{services.image_url_to_base64("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmwCmC6pZjmJZsvvNufFvqxJf7_C73ff3_Bg&s")}"
+            url = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQm..."
+            base64_img = services.image_url_to_base64(url)
+            self.profile_picture = f"data:image/png;base64,{base64_img}"
         
         super().save(*args, **kwargs)
 
