@@ -203,7 +203,15 @@ class profile(APIView):
                  serializer_phone = serializer.PhoneSerializer(data={"number": profile["phones"], "profiles":instance.id})
                  if serializer_phone.is_valid(): 
                     phone= serializer_phone.save()
-                    print(f"Phone {profile["phones"]}, has been updated to the database instance {profile["user_name"]}, with number: {models.Profiles.objects.get(user_name=profile["user_name"]).phones.all()}")
+                    phone_no = profile['phones']
+                    username = profile['user_name']
+
+                    db_profile = models.Profiles.objects.get(user_name=username)
+
+                    print(
+                        f"Phone {phone_no}, has been updated to the database instance {username}, "
+                        f"with number: {db_profile.phones.all()}"
+                    )
 
                  print(f"errors: {serializer_phone.errors}")
             
