@@ -22,7 +22,7 @@ from django.db.models import Q
 # Create your views here.
 @ensure_csrf_cookie
 def launch_page(request):
-    return render(request, "profiles/landing_page.html")
+    return render(request, "profiles/Landing_page.html")
 
 @ensure_csrf_cookie
 def sign_in(request):
