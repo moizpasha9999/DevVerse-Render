@@ -1107,7 +1107,7 @@
             You have blocked this user. You can’t send or receive messages.
         </p>
 
-        <button class="btn btn-primary btn-sm unblockUser" id="unblockUserBtn" onclick=unblock_func()>
+        <button class="btn btn-primary btn-sm unblockUser" id="unblockUserBtn" onclick="unblock_func()">
             Unblock User
         </button>
 
@@ -1115,10 +1115,13 @@
 </div>`;
 
                                 document.querySelector(".blockUser").classList.add("d-none");
+                                document.getElementById("messageBox").disabled = true;
 
                             }
                             else if (data["blocked"] != "blocked") {
                                 document.querySelector(".blockUser").classList.remove("d-none");
+                                document.getElementById("messageBox").disabled = false;
+
 
                             }
                                
