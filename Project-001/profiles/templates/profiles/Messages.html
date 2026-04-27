@@ -212,7 +212,7 @@
         .chart-wrap {
             position: relative;
             height: 220px;
-            overflow: hidden;
+            overflow: hidden
             border-radius: 10px;
         }
 
@@ -998,12 +998,14 @@
                 let chat_div = document.querySelector(".chat-messages");
                 let inner_html = '';
                 console.log(`Here: ${profile_selected}`, Date.now());
+                generate_profile_cards();
                 if (!profile_selected) return 0;
                 document.getElementById(`notify-badge-${profile_selected.slice(1)}`).classList.add("d-none");
                 fetch(window.location.origin + `/messages/load-inbox/?user_name=${JSON.parse(localStorage.getItem("profile")).user_name}&current_inbox=${profile_selected.slice(1) }`).then((response) => {
                     if (response.status == 200) {
                         let data = response.json();
                         data.then((data) => {
+                            
                             data["messages"].forEach((value) => {
                                 let html = ``;
                                 console.log(`Inbox: ${value.inbox}, sender: ${value.sender_username}, receiver: ${value.receiver_username}`);
@@ -1070,6 +1072,56 @@
                                 inner_html += html
 
                             });
+                            
+                            if (data["blocked"] == "blocked") {
+
+                                unblock_func = () => {
+                                    fetch(window.location.origin + `/messages/block-user?profile=${JSON.parse(localStorage.getItem("profile")).user_name}&blocked=${profile_selected.slice(1)}&unblock=1`).then((response) => {
+                                        let data = response.json();
+                                        data.then((data) => {
+                                            const status = data["status"];
+                                            if (status == "successful") {
+                                                console.log("Good to go.");
+                                                showConfirmation(`${profile_selected} Unblocked`);
+                                            }
+
+                                            else {
+                                                showConfirmation("An error occured, please try again");
+                                            }
+
+                                        });
+
+                                    });
+
+                                }
+                                inner_html += `<div class="chat-blocked-overlay d-flex align-items-center justify-content-center mt-4">
+    <div class="card shadow-sm text-center p-4 border-0" style="max-width: 320px;">
+        
+        <div class="mb-3">
+            <i class="bi bi-person-x-fill text-danger" style="font-size: 3rem;"></i>
+        </div>
+
+        <h5 class="fw-bold">User Blocked</h5>
+
+        <p class="text-muted small mb-3">
+            You have blocked this user. You can’t send or receive messages.
+        </p>
+
+        <button class="btn btn-primary btn-sm unblockUser" id="unblockUserBtn" onclick=unblock_func()>
+            Unblock User
+        </button>
+
+    </div>
+</div>`;
+
+                                document.querySelector(".blockUser").classList.add("d-none");
+
+                            }
+                            else if (data["blocked"] != "blocked") {
+                                document.querySelector(".blockUser").classList.remove("d-none");
+
+                            }
+                               
                             if (inner_html == chat_div.innerHTML) {
 
                                 console.log("I can also be the error")
@@ -1089,6 +1141,8 @@
             let profile_selected = "";
             function check_localStorage() {
                 profile_selected = (localStorage.getItem("inbox")) ? "@" + localStorage.getItem("inbox") : "";
+                localStorage.removeItem("inbox");
+
                
                 messageBox.value = (localStorage.getItem("message")) ? localStorage.getItem("message") : "";
                 localStorage.removeItem("message");
@@ -1121,7 +1175,7 @@
                 });
             }
             function bind_events_card() {
-                if (localStorage.getItem("inbox")) {
+                if (profile_selected) {
                     document.getElementById(profile_selected.slice(1)).classList.add("active");
                     selected_profile_data = profiles.find((value) => value.user_name == profile_selected.slice(1))
                     document.querySelector(".chat-user").innerHTML = `
@@ -1135,7 +1189,7 @@
                                         `;
                     localStorage.removeItem("inbox");
 
-                    update_inbox();
+              
 
 
 
@@ -1203,8 +1257,12 @@
                                                                             `
                             inner_html += html
                         });
-                        profile_container.innerHTML = inner_html;
-                        bind_events_card();
+
+                        if (profile_container.querySelectorAll(":scope > div").length != profiles.length) {
+                            console.log(`Updating ${profile_container.querySelectorAll(":scope > div").length} vs ${profiles.length}`)
+                            profile_container.innerHTML = inner_html;
+                            bind_events_card();
+                        }
                     });
                 })
             }
@@ -1213,7 +1271,6 @@
         <script>
 
 
-            update_inbox();
             function send_message(message) {
 
                 fetch(window.location.origin + "/messages/send/", {
@@ -1390,7 +1447,7 @@
             });
 
             blockUser.addEventListener("click", () => {
-                fetch(window.location.origin + `/messages/block-user?profile=${JSON.parse(localStorage.getItem("profile")).user_name}&blocked=${profile_selected.slice(1)}`).then((response) => {
+                fetch(window.location.origin + `/messages/block-user?profile=${JSON.parse(localStorage.getItem("profile")).user_name}&blocked=${profile_selected.slice(1)}&unblock=0`).then((response) => {
                     let data = response.json();
                     data.then((data) => {
                         const status = data["status"];
@@ -1407,6 +1464,7 @@
 
                 })
             });
+            
             reportUser.addEventListener("click", () => {
                 fetch(window.location.origin + `/messages/block-user?profile=${JSON.parse(localStorage.getItem("profile")).user_name}&blocked=${profile_selected.slice(1)}`).then((response) => {
                     let data = response.json();

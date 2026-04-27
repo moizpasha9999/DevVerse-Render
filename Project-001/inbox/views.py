@@ -21,7 +21,13 @@ def block_user(request):
 
         profile = Profiles.objects.get(user_name = profile)
         blocked_profile = Profiles.objects.get(user_name= blocked_profile)
-        profile.blacklist.add(blocked_profile)
+        if request.GET.get("unblock") == "1":
+            try:
+                profile.blacklist.remove(blocked_profile)
+            except:
+                pass
+        else:
+             profile.blacklist.add(blocked_profile)
         print(profile.blacklist.all())
         return JsonResponse({"status": "successful", "message": "Blocked"})
 
@@ -147,8 +153,11 @@ def load_inbox(request):
             message["file"] = serializer.AttachmentSerializer(attachements,many=True).data
         #print(model_to_dict(messages))
         #messages = model_to_dict(inbox.messages)
-
-        return JsonResponse({"status":"successful", "messages": messages} )
+        block_status = "None"
+        for instance in profile_instance.blacklist.all():
+            if instance == current_inbox: 
+                block_status = "blocked"
+        return JsonResponse({"status":"successful", "messages": messages, "blocked": block_status} )
     except Exception as e:
         print(e)
         return JsonResponse({"status": "failed", "error": "hey"})
