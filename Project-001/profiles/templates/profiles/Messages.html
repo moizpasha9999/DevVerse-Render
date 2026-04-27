@@ -1203,6 +1203,7 @@
                         });
                         value.classList.add("active");
                         profile_selected = value.querySelector(".user_name").innerHTML;
+                        document.querySelector(".error-message").classList.remove("alert", "alert-danger");
                         selected_profile_data = profiles.find((value) => value.user_name == profile_selected.slice(1))
                         document.querySelector(".chat-user").innerHTML = `
                                                                 <div class="chat-user">

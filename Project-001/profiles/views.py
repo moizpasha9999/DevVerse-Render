@@ -281,6 +281,7 @@ def verification_endpoint(request):
         username = data["user_name"]
         instance = models.Profiles.objects.get(user_name=username)
         instance_code = instance.login_status
+        print(f"instance: {instance}")
         if instance_code==code:
             instance.email_verified = True
             instance.save(update_fields=["email_verified"])
