@@ -312,6 +312,7 @@
             display: flex;
             margin: -28px; /* cancels .main padding */
         }
+        
 
         .messenger {
             width: 100%;
@@ -327,6 +328,8 @@
             width: 300px;
             height: 100%;
             display: flex;
+
+
             flex-direction: column;
             border-right: 1px solid var(--glass-border);
             overflow-y: auto;
@@ -555,6 +558,41 @@
             .chat-icon:hover {
                 color: var(--primary);
             }
+        .chat-back {
+            display: none;
+            font-size: 20px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .messenger {
+                flex-direction: column;
+                justify-content: space-around;
+            }
+
+            .chat-list {
+                width: 100%;
+                height: 100%;
+                border-right: none;
+            }
+            .chat-list.hide{
+                display:none;
+            }
+
+            .chat-area {
+                display: none; /* hidden until a chat is opened */
+            }
+
+                .chat-area.active {
+                    display: flex;
+                    width: 100%;
+                    height: 100%;
+                }
+            .chat-back {
+                display: inline-block;
+            }
+        }
     </style>
 </head>
 
@@ -1182,11 +1220,14 @@
                     document.getElementById(profile_selected.slice(1)).classList.add("active");
                     selected_profile_data = profiles.find((value) => value.user_name == profile_selected.slice(1))
                     document.querySelector(".chat-user").innerHTML = `
+                    <i class="bi bi-arrow-left chat-back"></i>
                                         <div class="chat-user">
+                                
+
                                                     <img src="${selected_profile_data.profile_picture}">
                                                     <div class="chat-title" id="chatInfoBtn">
                                                         <div class="name">@${selected_profile_data.user_name}</div>
-                                                        <div class="status">${selected_profile_data.jobTitle}</div>
+                                                        <div class="status">${(selected_profile_data.jobTitle) ? selected_profile_data.jobTitle:''}</div>
                                                     </div>
                                                 </div>
                                         `;
@@ -1207,8 +1248,12 @@
                         value.classList.add("active");
                         profile_selected = value.querySelector(".user_name").innerHTML;
                         document.querySelector(".error-message").classList.remove("alert", "alert-danger");
+                        document.querySelector(".chat-area").classList.add("active");
+                        document.querySelector(".chat-list").classList.add("hide");
                         selected_profile_data = profiles.find((value) => value.user_name == profile_selected.slice(1))
                         document.querySelector(".chat-user").innerHTML = `
+                    <i class="bi bi-arrow-left chat-back"></i>
+
                                                                 <div class="chat-user">
                                                                             <img src="${selected_profile_data.profile_picture}">
                                                                             <div class="chat-title" id="chatInfoBtn">
@@ -1218,7 +1263,7 @@
                                                                         </div>
                                                                 `;
 
-
+                        bind_events_card()
                         update_inbox();
                     });
 
@@ -1228,6 +1273,10 @@
                     sendFilePreview.style.display = "none";
                     sendFileData = "";
                 })
+                document.querySelector(".chat-back").addEventListener("click", () => {
+                    document.querySelector(".chat-area").classList.remove("active");
+                    document.querySelector(".chat-list").classList.remove("hide");;
+                });
             }
             let profiles = '';
             function generate_profile_cards() {
