@@ -168,17 +168,20 @@
                             <i id="eyeIcon" class="bi bi-eye-slash"></i>
                         </span>
                     </div>
-                    
-                    
+
+
                 </div>
                 <div class="mb-3">
                     <label for="username" class="form-label">Username</label>
                     <input type="text" id="username" class="form-control" placeholder="Create a username" required>
                 </div>
                 <div class="d-grid">
-                    <button type="submit" class="btn btn-outline-primary rounded-pill verifyButton" >Verify</button>
+                    <button type="submit" class="btn btn-outline-primary rounded-pill verifyButton">Verify</button>
                 </div>
             </form>
+            <div class="error-message mt-1 mb-0 text-center">
+
+            </div>
             <div class="text-center mt-3">
                 <small>Already have an account? <a href="{% url 'login_page' %}" class="text-decoration-none">Log In</a></small>
             </div>
@@ -244,10 +247,11 @@
                         let data = response.json();
                         data.then((data) => {
                             username_available = data["status"];
+                            console.log(data);
                             
                         }).then(() => {
                             if (username_available) {
-                                
+
                                 fetch(String(window.location.origin) + "/profile/", {
                                     method: "POST",
                                     headers: {
@@ -260,19 +264,24 @@
                                     if (response.status === 200) {
                                         let data = response.json();
                                         data.then((data) => {
+                                            console.log(data);
                                             if (data["status"] == "successful") {
                                                 profile_data_local = {
                                                     password: document.getElementById('password').value,
                                                     user_name: document.getElementById('username').value,
                                                 }
                                                 localStorage.setItem('profile', JSON.stringify(profile_data_local));
-                                            
+
                                                 window.location.href = "/Email-Verification/";
                                             }
                                         });
                                     }
 
                                 });
+                            }
+                            else {
+                                document.querySelector(".error-message").classList.add("alert", "alert-danger");
+                                document.querySelector(".error-message").innerHTML = "The username is already taken.";
                             }
                             
 

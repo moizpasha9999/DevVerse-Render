@@ -304,8 +304,47 @@
                 </section>
         {% include 'profiles/base.html' %}
         <script>
+            function redirect_profile() {
+                if (localStorage.getItem("profile")) {
+                    let profile = JSON.parse(localStorage.getItem("profile"));
+                    profile.return_data = true
+                    fetch(window.location.origin + "/redirect_profile/", {
+                        method: "POST",
+                        headers: {
+                            'Content-Type': "application/json",
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify(profile)
+                    }).then((response) => {
+                        if (response.status == 200) {
+                            let data = response.json()
+                            data.then((data) => {
+                                console.log(data["message"]);
+                                if (data["message"] == "Redirecting") {
+                                    profile_data = data;
+                                    console.log(profile_data);
+                                    update_data(profile_data);
+                                }
+                                else if (data["message"] == "Email not verified") {
+                                    window.location.href = "/Email-Verification/";
+                                }
+                                else if (data["message"] == "Incorrect Password" || data["message"] == "Incorrect Password or username") {
+                                    window.location.href = "/sign-in/";
+
+                                }
+                                else {
+                                    return false;
+                                }
+                            })
+
+                        }
+                    });
+                }
+            }
+            console.log("Moix")
+            redirect_profile();
             function shareProfile(user_name) {
-                let link = window.location.origin + "user/profile/" + user_name + `?viewer=${toBase64(JSON.parse(localStorage.getItem("profile")).user_name)}`;
+                let link = window.location.origin + "/user/profile/" + user_name + `?viewer=${toBase64(JSON.parse(localStorage.getItem("profile")).user_name)}`;
                 // Coming back
                 localStorage.setItem("message", link);
                 window.location.href = window.location.origin + "/messages/";
@@ -518,43 +557,7 @@
 
 
             }
-            function redirect_profile() {
-                if (localStorage.getItem("profile")) {
-                    let profile = JSON.parse(localStorage.getItem("profile"));
-                    profile.return_data = true
-                    fetch(window.location.origin + "/redirect_profile/", {
-                        method: "POST",
-                        headers: {
-                            'Content-Type': "application/json",
-                            'X-CSRFToken': getCookie('csrftoken')
-                        },
-                        body: JSON.stringify(profile)
-                    }).then((response) => {
-                        if (response.status == 200) {
-                            let data = response.json()
-                            data.then((data) => {
-                                if (data["message"] == "Redirecting") {
-                                    profile_data = data;
-                                    console.log(profile_data);
-                                    update_data(profile_data);
-                                }
-                                else if (data["message"] == "Email not verified") {
-                                    window.location.href = "/Email-Verification/";
-                                }
-                                else if (data["message"] == "Incorrect Password" || data["message"] == "Incorrect Password or username") {
-                                    window.location.href = "/sign-in/";
-
-                                }
-                                else {
-                                    return false;
-                                }
-                            })
-
-                        }
-                    });
-                }
-            }
-            redirect_profile();
+            
         </script>
 
         <script>

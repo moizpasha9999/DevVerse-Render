@@ -153,7 +153,9 @@
     body.dark-theme .theme-toggle .icon.sun { color: #555; }
     body.dark-theme .theme-toggle .icon.moon { color: #f1c40f; }
     body.dark-theme .toggle-ball { transform: translateX(30px); background: #222; }
-
+    .cursor-pointer {
+          cursor: pointer;
+      }
   </style>
 </head>
 
@@ -232,6 +234,29 @@
                 });
             }
             get_activities();
+            function formatTimeAgo(isoString) {
+                const date = new Date(isoString);
+                const now = new Date();
+
+                const seconds = Math.floor((now - date) / 1000);
+
+                const intervals = {
+                    year: 31536000,
+                    month: 2592000,
+                    day: 86400,
+                    hour: 3600,
+                    minute: 60
+                };
+
+                for (let key in intervals) {
+                    const value = Math.floor(seconds / intervals[key]);
+                    if (value >= 1) {
+                        return value + " " + key + (value > 1 ? "s" : "") + " ago";
+                    }
+                }
+
+                return "Just now";
+            }
             function render_activities(activities) {
                 let html = "";
                 document.querySelector(".notify-badge").classList.add("d-none");
@@ -239,16 +264,16 @@
                     let type = value.activity;
                     if (type == "FU")
                         html += `
-                                    <div class="d-flex align-items-start gap-3 mb-3">
+                                    <div class="d-flex align-items-start gap-3 mb-3 cursor-pointer">
                                         <i class="bi bi-people fs-3 text-primary"></i>
                                         <div>
                                             <div class="fw-bold">New follower — @${value.done_by}</div>
-                                            <small class="text-muted">${value.time}</small>
+                                            <small class="text-muted">${formatTimeAgo(value.time)}</small>
                                         </div>
                             `;
                     if (type == "RM")
                         html += `
-                                    <div class="d-flex align-items-start gap-3 mb-3 message-notification" id=${value.done_by}>
+                                    <div class="d-flex align-items-start gap-3 mb-3 message-notification cursor-pointer" id=${value.done_by}>
                                         <i class="bi bi-people fs-3 text-primary"></i>
                                         <div>
                                             <div class="fw-bold"> @${value.done_by}-Send a Message</div>
@@ -260,7 +285,7 @@
                     else if (type == "LI")
                         html += `
                             <div class="d-flex align-items-start gap-3 mb-3">
-                                <i class="bi bi-check-circle fs-3 text-success"></i>
+                                <i class="bi bi-check-circle fs-3 text-success cursor-pointer"></i>
                                 <div>
                                     <div class="fw-bold">${value.detail}</div>
                                     <small class="text-muted">${value.time}</small>

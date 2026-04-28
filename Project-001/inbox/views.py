@@ -75,6 +75,9 @@ def send_message(request):
         data = json.loads(request.body)
         profile_instance = Profiles.objects.get(user_name=data["sender_username"])
         receiver_profile = Profiles.objects.get(user_name=data["receiver_username"])
+        if (profile_instance in receiver_profile.blacklist.all()) or (receiver_profile in profile_instance.blacklist.all()):
+            print("Users blocked")
+            return JsonResponse({"status": "failed", "error": "Blocked"})
         activity = Activity.objects.create(profile = receiver_profile, activity= "RM", done_by= profile_instance, detail = "Received message" )
         receiver_profile.active_notifications+=1
         receiver_profile.save()

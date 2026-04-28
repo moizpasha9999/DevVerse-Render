@@ -391,7 +391,7 @@
 
         }
         function shareProfile(user_name) {
-            let link = window.location.origin + "user/profile/" + user_name + `?viewer=${toBase64(JSON.parse(localStorage.getItem("profile")).user_name)}`;
+            let link = window.location.origin + "/user/profile/" + user_name + `?viewer=${toBase64(JSON.parse(localStorage.getItem("profile")).user_name)}`;
             // Coming back
             localStorage.setItem("message", link);
             window.location.href = window.location.origin + "/messages/";

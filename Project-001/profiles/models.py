@@ -1,5 +1,7 @@
 from django.db import models
 from profiles import model_services as services
+from django.conf import settings
+import os, base64
 
 # Create your models here.
 class Community(models.Model):
@@ -50,8 +52,18 @@ class Profiles(models.Model):
     def save(self, *args, **kwargs):
         self.password = services.encrypted(self.password)
         if not(self.profile_picture):
-            url = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQm..."
-            base64_img = services.image_url_to_base64(url)
+            image_path = os.path.join(
+            settings.BASE_DIR,
+            "profiles",
+            "static",
+            "assets",
+            "blank_profile.png"
+        )
+
+        # Read and convert to base64
+            with open(image_path, "rb") as image_file:
+                base64_img = base64.b64encode(image_file.read()).decode("utf-8")
+
             self.profile_picture = f"data:image/png;base64,{base64_img}"
         
         super().save(*args, **kwargs)
