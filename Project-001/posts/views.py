@@ -111,7 +111,9 @@ def get_posts(request):
                 return JsonResponse({"status":"failed", "message": "Unauthenticated"})
 
         else:
-            posts =  models.Post.objects.all()
+            posts = models.Post.objects.exclude(
+                     postbox__profile__blacklist=user_profile
+                )
         posts_list = services.serialize_posts(posts, user_profile, user_profile)
         print("mai hi hu")
 
