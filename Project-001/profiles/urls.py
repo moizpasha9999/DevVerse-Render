@@ -7,6 +7,7 @@ urlpatterns = [
     path('sign-in/', views.sign_in, name='login_page'),
     path('sign-up/', views.sign_up, name='sign-up'),
     path('profile/', views.profile.as_view()),
+    path('reset-password/', views.reset_password),
     path('email_authentication/', views.email_authentication),
     path('authentication/', views.credentials_authentication),
     path("Email-Verification/", views.email_verification_page),

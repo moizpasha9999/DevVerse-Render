@@ -131,6 +131,9 @@
     body.dark-theme .theme-toggle .icon.sun { color: #555; }
     body.dark-theme .theme-toggle .icon.moon { color: #f1c40f; }
     body.dark-theme .toggle-ball { transform: translateX(30px); background: #222; }
+    .cursor-pointer {
+        cursor: pointer;
+    }
 </style>
 </head>
 <body>
@@ -166,7 +169,7 @@
           <input class="form-check-input" type="checkbox" id="remember">
           <label class="form-check-label" for="remember">Remember me</label>
         </div>
-        <a href="#" class="small text-decoration-none">Forgot password?</a>
+        <a  class="small text-decoration-none cursor-pointer" id="forgotPassword">Forgot password?</a>
       </div>
       <div class="alert alert-warning mb-1 mt-1 message d-none" role="alert">
 
@@ -191,6 +194,11 @@ const toggle = document.getElementById("themeToggle");
 toggle.addEventListener("click", () => {
     document.body.classList.toggle("dark-theme");
 });
+    document.getElementById("forgotPassword").addEventListener("click", () => {
+        localStorage.setItem("reset-password", true);
+        window.location.href = "/Email-Verification/";
+        
+    })
 
     // Optional: simulate login using localStorage for demo
     function getCookie(name) {
