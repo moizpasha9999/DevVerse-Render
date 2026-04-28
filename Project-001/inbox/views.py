@@ -72,6 +72,7 @@ def download_file(request):
 
 def send_message(request):
     try:
+        print("Sending a message")
         data = json.loads(request.body)
         profile_instance = Profiles.objects.get(user_name=data["sender_username"])
         receiver_profile = Profiles.objects.get(user_name=data["receiver_username"])
@@ -90,6 +91,7 @@ def send_message(request):
         data_copy = {key: value for key, value in data.items() if key != "file"}
         message = models.Message.objects.create(**data_copy, inbox=inbox)
         message_receiver = models.Message.objects.create(**data_copy, inbox=receiver_inbox)
+        print(model_to_dict(message))
         if data.get("file"):
             file = data["file"]
             file_data = file["file_data"]
@@ -103,7 +105,7 @@ def send_message(request):
             print("pass")
             instance = instance.save()
             instance.message.set(message, message_receiver)
-
+         
             
         return JsonResponse({"status": "successful", "message": model_to_dict(message), "attachment": list(message.attachement.all())})
 
