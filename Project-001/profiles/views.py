@@ -1,6 +1,7 @@
 import base64
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.http import Http404
 import json
 from django.core.exceptions import ObjectDoesNotExist
 import smtplib
@@ -218,6 +219,8 @@ class profile(APIView):
                  profile_final="error occured"
             
             print(serializer_profile.errors)
+            profile_final.login_status = services.get_verification_code()
+            profile_final.save()
             return JsonResponse({"status":"successful", "profile": {"user_name": profile_final.user_name, "email_id": profile_final.email_id, "email_verified": profile_final.email_verified, "profile_id": profile_final.id}})
           
         except Exception as e:
@@ -292,20 +295,47 @@ def verification_endpoint(request):
     except Exception as e:
             return JsonResponse({"status":"failed", "message":str(e)})
 
+def reset_password(request):
+    user_name = request.GET.get("user_name")
+    token = request.GET.get("token")
+    token = base64.b64decode(token).decode("utf-8")
+    print(user_name)
+    print(token)
+    profile = models.Profiles.objects.get(user_name=user_name)
+
+    if token==profile.login_status:
+       return render(request, "profiles/reset-password.html")
+        
+    else:
+        print(profile.login_status)
+        raise Http404("Page not found")
+        
 
 def email_authentication(request):
     print(request.body)
     data= json.loads(request.body)
     verified = models.Profiles.objects.get(user_name=data["user_name"]).email_verified
-    if not verified:
+    if not verified or data.get("reset_password") :
             email_id = models.Profiles.objects.get(user_name=data["user_name"]).email_id
             login_status= services.get_verification_code()
             email = EmailMessage()
             email["To"]= email_id
             email["From"]="devverseofficial00@gmail.com"
-            email["Subject"]="Email Verification code"
-            email.set_content(f"Your verification link is {login_status}")
-            email.add_alternative(f"""
+            email["Subject"]="Email Verification"
+            if data.get("reset_password"):
+             email.set_content(f"Your verification link is {request.headers.get('Origin')}/profile/reset-password?user_name={data['user_name']}&token={base64.b64encode(str(login_status).encode('utf-8')).decode('utf-8')}")
+             email.add_alternative(f"""
+        <html>
+          <body>
+            <p style="font-size: 30px; margin-bottom:3px; ">Your verification link is: <a style="font-size: 35px;">{f"Your verification link is {request.headers.get('Origin')}/reset-password?user_name={data['user_name']}&token={base64.b64encode(str(login_status).encode('utf-8')).decode('utf-8')}"}</a></p>
+            <p style="font-size: 30px; ">Please use this link to reset your password. This automated email is sent for email verification.</p>
+          </body>
+        </html>
+        """, subtype="html")
+
+            else:
+             email.set_content(f"Your verification code is {login_status}")
+             email.add_alternative(f"""
         <html>
           <body>
             <p style="font-size: 30px; margin-bottom:3px; ">Your verification code is: <a style="font-size: 35px;">{login_status}</a></p>
@@ -314,6 +344,7 @@ def email_authentication(request):
         </html>
         """, subtype="html")
 
+            
             SMTP_HOST="smtp.gmail.com"
             SMTP_PORT=465
 
@@ -323,7 +354,7 @@ def email_authentication(request):
                 smtp.send_message(email)
     
             profile_object = models.Profiles.objects.update(login_status=login_status)
-          
+            if data.get("reset_password") : verified=False
     return JsonResponse({"status":"successful", "verified": verified})
      
 
