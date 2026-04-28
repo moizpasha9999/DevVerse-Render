@@ -170,13 +170,12 @@ class profile(APIView):
                 Inboxmodels.Inbox.objects.get_or_create(profile=profile)
                 unseen = profile.inbox.messages.filter(seen=False, sender_username= profile_i).count()
                 objects[i] = {"id": profile_i.id, "user_name": profile_i.user_name, "profile_picture": profile_i.profile_picture, "jobTitle": profile_i.jobTitle, "unseen":unseen }
-                print(objects[i])
            
             
             #profiles_objects = serializer.ProfileSerializer(objects, many=True).data
             return JsonResponse({"status":"successfull", "profiles":objects})
         except Exception as e:
-            return JsonResponse({"status":"failed", "error":e})
+            return JsonResponse({"status":"failed", "error":str(e)})
 
     def patch(self, request):
         profile= request.data
