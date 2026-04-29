@@ -2,6 +2,8 @@ from django.db import models
 from profiles import model_services as services
 from django.conf import settings
 import os, base64
+import base64
+from django.core.files import File
 
 # Create your models here.
 class Community(models.Model):
@@ -42,7 +44,7 @@ class Profiles(models.Model):
     email_verified = models.BooleanField(default=False)
     login_status = models.CharField(max_length=255, default="")
     location = models.CharField(max_length=255, default="")
-    profile_picture = models.TextField(null=True, blank = True)
+    profile_picture = models.ImageField(null=True, blank = True, upload_to="profile_pictures/", default='profile_pictures/blank_profile.png')
     jobTitle = models.TextField(null=True, blank=True)
     active_notifications =models.PositiveIntegerField(default=0)
 
@@ -51,20 +53,7 @@ class Profiles(models.Model):
 
     def save(self, *args, **kwargs):
         self.password = services.encrypted(self.password)
-        if not(self.profile_picture):
-            image_path = os.path.join(
-            settings.BASE_DIR,
-            "profiles",
-            "static",
-            "assets",
-            "blank_profile.png"
-        )
-
-        # Read and convert to base64
-            with open(image_path, "rb") as image_file:
-                base64_img = base64.b64encode(image_file.read()).decode("utf-8")
-
-            self.profile_picture = f"data:image/png;base64,{base64_img}"
+       
         
         super().save(*args, **kwargs)
 

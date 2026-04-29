@@ -22,7 +22,6 @@ urlpatterns = [
     path('messages/', views.messages, name='messages'),
     path('activity/', views.activity, name='activity'),
     path('settings/', views.settings, name='settings'),
-    path('settings/', views.settings, name='settings'),
     path("get_activity/", views.get_activity),
     path("user/profile/<str:user_name>/", views.profile_template),
     path("follow/profile/", views.follow_profile)

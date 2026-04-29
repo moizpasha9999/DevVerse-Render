@@ -2,8 +2,12 @@ import base64
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.http import Http404
-import json
+import json, os
+from django.core.files import File
+
+from django.conf import settings as django_settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.files.base import ContentFile
 import smtplib
 from email.message import EmailMessage
 from . import model_services
@@ -89,8 +93,14 @@ def get_usernames(request):
     .filter(user_name__istartswith=initials)
     .exclude(blacklist=user)
     .exclude(user_name=user.user_name)
-    .values("user_name", "profile_picture", "jobTitle")
+    
 )
+    for i in range(len(usernames)):
+        user = usernames[i]
+        file = user.profile_picture.read()
+        base64_profile_picture = base64.b64encode(file).decode('utf-8')
+        base64_profile_picture="data:image/png;base64,"+base64_profile_picture
+        usernames[i] = {"user_name": user.user_name, "profile_picture": base64_profile_picture, "jobTitle": user.jobTitle}
     print(usernames)
    
     
@@ -116,26 +126,22 @@ def follow_profile(request):
 
 
 def services_request(request):
-    try:
-        '''
-        objects = models.Profiles.objects.exclude(
-        profile_picture__istartswith="data:image/png;base64"
-    )
+    
+        
+        objects = models.Profiles.objects.all()
         for profile in objects:
-            profile.profile_picture = f"data:image/png;base64,{model_services.image_url_to_base64('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmwCmC6pZjmJZsvvNufFvqxJf7_C73ff3_Bg&s')}"
-            profile.save()
-            print(profile)
-            '''
-        from django.apps import apps
+            try:
 
-        Profile = apps.get_model('profiles', 'Profiles')
-
-        for rel in Profile._meta.related_objects:
-                print(rel.name, rel.on_delete)
-        return JsonResponse({"status":"Done"})
-    except Exception as e:
-        print(e)
-        return JsonResponse(str(e), safe=False)
+                profile.profile_picture = "profile_pictures/blank_profile.png"
+                profile.save()
+                print(f"Successfully changed image for {profile.user_name} with {profile.profile_picture.name}.")
+                      
+            except Exception as e:
+                 print(e)
+                 continue
+        return JsonResponse({"status": "okay"})
+            
+       
 
 class profile(APIView):
     def delete(self, request):
@@ -169,7 +175,10 @@ class profile(APIView):
                 profile_i = objects[i]
                 Inboxmodels.Inbox.objects.get_or_create(profile=profile)
                 unseen = profile.inbox.messages.filter(seen=False, sender_username= profile_i).count()
-                objects[i] = {"id": profile_i.id, "user_name": profile_i.user_name, "profile_picture": profile_i.profile_picture, "jobTitle": profile_i.jobTitle, "unseen":unseen }
+                file = profile_i.profile_picture.read()
+                base64_profile_picture = base64.b64encode(file).decode('utf-8')
+                base64_profile_picture="data:image/png;base64,"+base64_profile_picture
+                objects[i] = {"id": profile_i.id, "user_name": profile_i.user_name, "profile_picture": base64_profile_picture, "jobTitle": profile_i.jobTitle, "unseen":unseen }
            
             
             #profiles_objects = serializer.ProfileSerializer(objects, many=True).data
@@ -179,7 +188,17 @@ class profile(APIView):
 
     def patch(self, request):
         profile= request.data
-        print(request.method)
+        if profile.get("profile_picture"):
+            base64_img = profile["profile_picture"]
+            if ";base64," in base64_img:
+                    header, base64_img = base64_img.split(";base64,")
+
+            base64_img = base64_img.strip()
+            decoded_file = ContentFile(
+                    base64.b64decode(base64_img),
+                    name=f"{profile["user_name"]}.png"
+                )
+            profile["profile_picture"] = decoded_file
         if profile.get("old_user_name"):
             instance = models.Profiles.objects.get(user_name = profile["old_user_name"] )
             profile.pop("old_user_name")
@@ -226,6 +245,17 @@ class profile(APIView):
               return JsonResponse({"status":"failed", "error":str(e)})
     def post(self, request):
         profile= request.data
+        if profile.get("profile_picture"):
+            base64_img = profile["profile_picture"]
+            if ";base64," in base64_img:
+                    header, base64_img = base64_img.split(";base64,")
+
+            base64_img = base64_img.strip()
+            decoded_file = ContentFile(
+                    base64.b64decode(base64_img),
+                    name=f"{profile["user_name"]}.png"
+                )
+            profile["profile_picture"] = decoded_file
         try:
             
             if profile.get("community"):
@@ -235,9 +265,7 @@ class profile(APIView):
                      profile["community"]= community.id
                      print(profile["community"])
                    print(f"errors: {serializer_community.errors}")
-
-            
-            
+    
 
             serializer_profile= serializer.ProfileSerializer(data=profile)
             
@@ -384,7 +412,11 @@ def credentials_authentication(request):
                 profile["message"]= "Redirecting"
                 profile["phones"] = phones
                 profile["community"] = community
-                
+                file = profile_instance.profile_picture.read()
+                base64_profile_picture = base64.b64encode(file).decode('utf-8')
+                base64_profile_picture="data:image/png;base64," +base64_profile_picture
+                print("I am running")
+                profile["profile_picture"] = base64_profile_picture
                 print(activity)
                 return JsonResponse(profile)
             else:
