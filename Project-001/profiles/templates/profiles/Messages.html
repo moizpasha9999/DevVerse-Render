@@ -1217,6 +1217,7 @@
                             window.location.href = window.location.origin + "/dashboard";
                             return 0;
                         }
+                        console.log(value);
                         window.location.href = window.location.origin + "/user/profile/" + value.id + `?viewer=${toBase64(JSON.parse(localStorage.getItem("profile")).user_name)}`;
                     });
                 });
@@ -1227,7 +1228,7 @@
                     selected_profile_data = profiles.find((value) => value.user_name == profile_selected.slice(1))
                     document.querySelector(".chat-user").innerHTML = `
                     <i class="bi bi-arrow-left chat-back"></i>
-                                        <div class="chat-user">
+                                        <div class="chat-user-profile cursor-pointer chat-user" id="${selected_profile_data.user_name}">
                                 
 
                                                     <img src="${selected_profile_data.profile_picture}">
@@ -1242,7 +1243,7 @@
               
 
 
-
+                    
                 }
                 link_to_profile("search-item");
                 let profile_cards = document.querySelectorAll(".chat-friend-item");
@@ -1260,7 +1261,7 @@
                         document.querySelector(".chat-user").innerHTML = `
                     <i class="bi bi-arrow-left chat-back"></i>
 
-                                                                <div class="chat-user">
+                                                                <div class="chat-user-profile cursor-pointer chat-user" id="${selected_profile_data.user_name}">
                                                                             <img src="${selected_profile_data.profile_picture}">
                                                                             <div class="chat-title" id="chatInfoBtn">
                                                                                 <div class="name">@${selected_profile_data.user_name}</div>
@@ -1274,6 +1275,7 @@
                     });
 
                 });
+                link_to_profile("chat-user-profile");
 
                 document.querySelector(".newfile_close").addEventListener("click", () => {
                     sendFilePreview.style.display = "none";
