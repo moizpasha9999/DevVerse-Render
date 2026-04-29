@@ -196,7 +196,7 @@ class profile(APIView):
             base64_img = base64_img.strip()
             decoded_file = ContentFile(
                     base64.b64decode(base64_img),
-                    name=f"{profile["user_name"]}.png"
+                    name=f"{profile['user_name']}.png"
                 )
             profile["profile_picture"] = decoded_file
         if profile.get("old_user_name"):
