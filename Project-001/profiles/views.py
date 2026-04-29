@@ -245,17 +245,7 @@ class profile(APIView):
               return JsonResponse({"status":"failed", "error":str(e)})
     def post(self, request):
         profile= request.data
-        if profile.get("profile_picture"):
-            base64_img = profile["profile_picture"]
-            if ";base64," in base64_img:
-                    header, base64_img = base64_img.split(";base64,")
 
-            base64_img = base64_img.strip()
-            decoded_file = ContentFile(
-                    base64.b64decode(base64_img),
-                    name=f"{profile['user_name']}.png"
-                )
-            profile["profile_picture"] = decoded_file
         try:
             
             if profile.get("community"):
