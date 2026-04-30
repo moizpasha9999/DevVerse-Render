@@ -4,7 +4,7 @@ from projects import models as projectModels
 from posts import serializer as postSerializer
 from posts import models as postModels
 from projects import serializer as projectsSerializer
-import random
+import random, base64
 
 
 APP_PASSWORD="zkjx wagf vzid xinp"
@@ -48,7 +48,10 @@ def serialize_posts(posts, profile, viewer_profile):
         post_dict["comments"] = [modify_username(comment) for comment in comments]
         likes = post.post_likes.count()
         post_dict["liked"] = False
-        post_dict["postbox"] = {"user": f"{post.postbox.profile.first_name}  {post.postbox.profile.last_name}", "profile_picture":post.postbox.profile.profile_picture, "user_name": post.postbox.profile.user_name  }
+        file = post.postbox.profile.profile_picture.read()
+        base64_profile_picture = base64.b64encode(file).decode('utf-8')
+        base64_profile_picture="data:image/png;base64," +base64_profile_picture
+        post_dict["postbox"] = {"user": f"{post.postbox.profile.first_name}  {post.postbox.profile.last_name}", "profile_picture": base64_profile_picture, "user_name": post.postbox.profile.user_name  }
         post_dict["timestamp"] = post.timestamp
         post_dict["is_owned"] = True if (profile.id==post.postbox.profile.id) else False
         for like in post.post_likes.all():
