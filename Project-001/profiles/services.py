@@ -48,12 +48,20 @@ def serialize_posts(posts, profile, viewer_profile):
         post_dict["comments"] = [modify_username(comment) for comment in comments]
         likes = post.post_likes.count()
         post_dict["liked"] = False
-        file = post.postbox.profile.profile_picture.read()
+        user = post.postbox.profile
+        user.profile_picture.seek(0)  # reset pointer to start
+        file = user.profile_picture.read()
         base64_profile_picture = base64.b64encode(file).decode('utf-8')
         base64_profile_picture="data:image/png;base64," +base64_profile_picture
-        post_dict["postbox"] = {"user": f"{post.postbox.profile.first_name}  {post.postbox.profile.last_name}", "profile_picture": base64_profile_picture, "user_name": post.postbox.profile.user_name  }
+        if post.image:
+            base64_image = base64.b64encode(post.image.read()).decode('utf-8')
+            base64_image="data:image/png;base64," +base64_image
+            post_dict["image"] = base64_image
+        else:
+            post_dict["image"] = False
+        post_dict["postbox"] = {"user": f"{user.first_name}  {user.last_name}", "profile_picture": base64_profile_picture, "user_name": user.user_name  }
         post_dict["timestamp"] = post.timestamp
-        post_dict["is_owned"] = True if (profile.id==post.postbox.profile.id) else False
+        post_dict["is_owned"] = True if (profile.id==user.id) else False
         for like in post.post_likes.all():
             if like.profile == viewer_profile:
                     print(profile.user_name)
