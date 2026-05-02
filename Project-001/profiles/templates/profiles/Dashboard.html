@@ -437,7 +437,7 @@
             let editjobTitle = document.getElementById("editjobTitle");
 
             function update_friends() {
-                fetch(window.location.origin + `/profile/?user_name=${JSON.parse(localStorage.getItem("profile")).user_name}`).then((response) => {
+                fetch(window.location.origin + `/profile/?user_name=${JSON.parse(localStorage.getItem("profile")).user_name}&friends_only=${true}`).then((response) => {
                     let data = response.json();
                     data.then((data) => {
                         profiles = data["profiles"];
@@ -561,15 +561,15 @@
         </script>
 
         <script>
+            // Modified
             function update_profile(payload) {
 
                 fetch(String(window.location.origin) + "/profile/", {
                     method: "PATCH",
                     headers: {
-                        'Content-Type': "application/json",
                         'X-CSRFToken': getCookie('csrftoken')
                     },
-                    body: JSON.stringify(payload)
+                    body: objectToFormData(payload)
 
                 }).then((response) => {
                     if (response.status === 200) {
@@ -601,7 +601,7 @@
                 profileEdit.style.display = 'none';
                 profileView.style.display = 'block';
             });
-
+            // Modified , changed the image structure
             saveBtn.addEventListener('click', () => {
                 profileName.textContent = editName.value;
                 lowerProfileName.textContent = editName.value;
@@ -619,15 +619,15 @@
 
                 const fullName = editName.value.trim();
                 const nameParts = fullName.split(" ");
-                const bg = editProfilePic.style.background;
+                bg = editProfilePic.style.background;
                 // Example output: "url('data:image/png;base64,iVBORw0KGgoAAAANS...') center/cover no-repeat"
 
                 // Extract the URL
                 const urlMatch = bg.match(/url\(['"]?(.*?)['"]?\)/);
-                const imageUrl = urlMatch ? urlMatch[1] : null;
+                let imageUrl = urlMatch ? urlMatch[1] : null;
                 profilePic.style.background = `url('${imageUrl}') center/cover no-repeat`;
                 lowerProfilePic.src = imageUrl;
-
+                imageUrl = editProfilePicBytes ? editProfilePicBytes : null;
                 const profilePayload = {
                     first_name: nameParts[0] || "",
                     last_name: nameParts.slice(1).join(" ") || "",
@@ -641,7 +641,7 @@
                     jobTitle: editjobTitle.value
                 };
                 update_profile(profilePayload);
-                renderPosts();
+                get_posts();
 
             });
 
@@ -649,6 +649,9 @@
             editProfilePic.addEventListener('click', () => uploadPic.click());
             uploadPic.addEventListener('change', (e) => {
                 const file = e.target.files[0];
+                let editProfilePicBytes;
+                globalThis.editProfilePicBytes = file;
+                
                 if (file) {
                     const reader = new FileReader();
                     reader.onload = function (event) {
@@ -704,6 +707,7 @@
 
                         }).then((fetchedposts) => {
                             posts = fetchedposts;
+                            console.log("New ones");
                             console.log(posts);
                             renderPosts();
 
@@ -774,16 +778,16 @@
                 postImageData = "";
                 editingPostId = null;
 
-                // IMAGE
+                // IMAGE // stored file object directly in postImageData
                 addPostImageBtn.onclick = () => postImage.click();
                 postImage.onchange = () => {
                     const file = postImage.files[0];
                     if (!file) return;
                     const reader = new FileReader();
                     reader.onload = e => {
-                        postImageData = e.target.result;
+                        postImageData = file; 
                         postImagePreview.style.display = "block";
-                        postImagePreview.querySelector("img").src = postImageData;
+                        postImagePreview.querySelector("img").src = e.target.result;
                     };
                     reader.readAsDataURL(file);
                 };
@@ -857,17 +861,58 @@
                 postImage.value = "";
                 postImagePreview.style.display = "none";
             }
+            function objectToFormData(obj, formData = new FormData(), parentKey = '') {
+                for (let key in obj) {
+                    if (!obj.hasOwnProperty(key)) continue;
+
+                    const value = obj[key];
+                    const formKey = parentKey ? `${parentKey}[${key}]` : key;
+
+                    if (value === null || value === undefined) {
+                        continue;
+                    }
+
+                    // Handle File or Blob (images, etc.)
+                    if (value instanceof File || value instanceof Blob) {
+                        formData.append(formKey, value);
+                    }
+
+                    // Handle Date
+                    else if (value instanceof Date) {
+                        formData.append(formKey, value.toISOString());
+                    }
+
+                    // Handle Array
+                    else if (Array.isArray(value)) {
+                        value.forEach((item, index) => {
+                            objectToFormData(item, formData, `${formKey}[${index}]`);
+                        });
+                    }
+
+                    // Handle Object (nested)
+                    else if (typeof value === 'object') {
+                        objectToFormData(value, formData, formKey);
+                    }
+
+                    // Handle primitive values
+                    else {
+                        formData.append(formKey, value);
+                    }
+                }
+
+                return formData;
+            }
 
             // RENDER
-            function saveRender(post) {
+            function saveRender(post) { //  , this function, copy it to home page
+                
                 if (!editingPostId) {
                     fetch(String(window.location.origin) + "/posts/create/", {
                         method: "POST",
                         headers: {
-                            'Content-Type': "application/json",
                             'X-CSRFToken': getCookie('csrftoken')
                         },
-                        body: JSON.stringify(post)
+                        body: objectToFormData(post)
 
                     }).then((response) => {
                         if (response.status === 200) {

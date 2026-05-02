@@ -106,7 +106,7 @@ def get_posts(request):
         if password:
             if (user_profile.password==password):
                     models.PostBox.objects.get_or_create(profile=user_profile)
-                    posts = user_profile.postbox.posts.all()   
+                    posts = user_profile.postbox.posts.all()
             else:
                 return JsonResponse({"status":"failed", "message": "Unauthenticated"})
 
@@ -126,7 +126,9 @@ def get_posts(request):
 
 def create_post(request):
     try:
-        data = json.loads(request.body)
+        data = {**request.POST, **request.FILES}
+        for key,value in data.items(): data[key] = value[0]
+        
         print(data)
         print(type(data))
         profile = Profilemodels.Profiles.objects.get(user_name=data["user_name"])

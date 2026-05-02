@@ -7,12 +7,12 @@ class PostBox(models.Model):
     profile = models.OneToOneField(Profiles, on_delete=models.CASCADE, related_name="postbox")
 
 class Post(models.Model):
-    payload = models.TextField()
+    payload = models.TextField(null=True, blank = True)
     postbox = models.ForeignKey(PostBox, on_delete=models.CASCADE, related_name="posts")
     timestamp = models.DateTimeField(auto_now=True)
     shares = models.IntegerField(default=0)
     pinned = models.BooleanField(default=False)
-    image = models.TextField(null=True, blank = True)
+    image = models.ImageField(null=True, blank = True, upload_to="posts/")
 
     
 

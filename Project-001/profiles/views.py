@@ -66,7 +66,10 @@ def profile_template(request, user_name):
             
         for i in range(len(friends)):
                profile_i = friends[i]
-               friends[i] = {"id": profile_i.id, "user_name": profile_i.user_name, "profile_picture": profile_i.profile_picture, "jobTitle": profile_i.jobTitle }
+               file = profile_i.profile_picture.read()
+               base64_profile_picture = base64.b64encode(file).decode('utf-8')
+               base64_profile_picture="data:image/png;base64," +base64_profile_picture
+               friends[i] = {"id": profile_i.id, "user_name": profile_i.user_name, "profile_picture": base64_profile_picture, "jobTitle": profile_i.jobTitle }
 
         projects_serialized = services.serialize_projects(profile)
         projects_serialized.reverse()
@@ -74,9 +77,14 @@ def profile_template(request, user_name):
         posts = profile.postbox.posts.all() 
         posts_serialized = services.serialize_posts(posts, profile, viewer_profile)
         posts_serialized.reverse()
+        file =profile.profile_picture.read()
+        base64_profile_picture = base64.b64encode(file).decode('utf-8')
+        base64_profile_picture="data:image/png;base64," +base64_profile_picture
+        profile.profile_picture = base64_profile_picture
         profile = model_to_dict(profile)
         profile["phones"] = serializer.PhoneSerializer(models.Phone.objects.filter(profiles=profile["id"]).last()).data
         profile["phones"]["number"] = "+92 "+ str(profile["phones"]["number"])
+
         return render(request, "profiles/profile_template.html", {"profile":profile , "posts": posts_serialized, "projects_data": projects_serialized, "friends": friends})
     except ObjectDoesNotExist:
         Postmodels.PostBox.objects.get_or_create(profile=profile)
@@ -110,11 +118,12 @@ def follow_profile(request):
     user_name =request.GET.get("user_name")
     password = request.GET.get("password")
     following_profile = request.GET.get("following_profile")
-    follow_state = request.GET.get("unfollow")
+    unfollow_state = request.GET.get("unfollow")
     user_profile = models.Profiles.objects.get(user_name= user_name)
     profile = models.Profiles.objects.get(user_name = following_profile)
+    models.Activity.objects.create(activity="FU", profile=profile, done_by=user_profile)
     if user_profile.password == password:
-        if follow_state=="0":
+        if unfollow_state=="0":
             user_profile.following.add(profile)
         else:
             user_profile.following.remove(profile)
@@ -128,13 +137,13 @@ def follow_profile(request):
 def services_request(request):
     
         
-        objects = models.Profiles.objects.all()
-        for profile in objects:
+        objects = Postmodels.Post.objects.select_related('postbox__profile')
+        for post in objects:
             try:
 
-                profile.profile_picture = "profile_pictures/blank_profile.png"
-                profile.save()
-                print(f"Successfully changed image for {profile.user_name} with {profile.profile_picture.name}.")
+                post.image = ""
+                post.save()
+                print(f"Successfully changed image for {post.postbox.profile.user_name} with {post.image.name}.")
                       
             except Exception as e:
                  print(e)
@@ -161,14 +170,22 @@ class profile(APIView):
         try:
             profile = request.GET.get("user_name")
             profile = models.Profiles.objects.get(user_name=profile)
-            contacts = models.Profiles.objects.filter(
-                (
-                    Q(sent_messages__receiver_username=profile) |
-                    Q(received_messages__sender_username=profile) |
-                    Q(followed_by=profile)
-                ) &
-                ~Q(blacklist=profile)
-            ).distinct()
+            if request.GET.get("friends_only"):
+                contacts = models.Profiles.objects.filter(
+                    (
+                        Q(followed_by=profile)
+                    ) &
+                    ~Q(blacklist=profile)
+                ).distinct()
+            else:
+                contacts = models.Profiles.objects.filter(
+                    (
+                        Q(sent_messages__receiver_username=profile) |
+                        Q(received_messages__sender_username=profile) |
+                        Q(followed_by=profile)
+                    ) &
+                    ~Q(blacklist=profile)
+                ).distinct()
             objects = list(contacts)
             print(objects)
             for i in range(len(objects)):
@@ -187,18 +204,10 @@ class profile(APIView):
             return JsonResponse({"status":"failed", "error":str(e)})
 
     def patch(self, request):
-        profile= request.data
-        if profile.get("profile_picture"):
-            base64_img = profile["profile_picture"]
-            if ";base64," in base64_img:
-                    header, base64_img = base64_img.split(";base64,")
+        profile = {**request.POST, **request.FILES}
+        for key,value in profile.items(): profile[key] = value[0]
 
-            base64_img = base64_img.strip()
-            decoded_file = ContentFile(
-                    base64.b64decode(base64_img),
-                    name=f"{profile['user_name']}.png"
-                )
-            profile["profile_picture"] = decoded_file
+        
         if profile.get("old_user_name"):
             instance = models.Profiles.objects.get(user_name = profile["old_user_name"] )
             profile.pop("old_user_name")
@@ -239,7 +248,7 @@ class profile(APIView):
             print(serializer_profile.errors)
             profile_final.login_status = services.get_verification_code()
             profile_final.save()
-            return JsonResponse({"status":"successful", "profile": {"user_name": profile_final.user_name, "email_id": profile_final.email_id, "email_verified": profile_final.email_verified, "profile_id": profile_final.id}})
+            return JsonResponse({"status":"successful", "profile": {"user_name": profile_final.user_name, "email_id": profile_final.email_id, "email_verified": profile_final.email_verified, "profile_id": profile_final.id, "profile_picture": str(profile_final.profile_picture)}})
           
         except Exception as e:
               return JsonResponse({"status":"failed", "error":str(e)})

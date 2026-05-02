@@ -365,9 +365,9 @@
                             if (!file) return;
                             const reader = new FileReader();
                             reader.onload = e => {
-                                postImageData = e.target.result;
+                                postImageData = file;
                                 postImagePreview.style.display = "block";
-                                postImagePreview.querySelector("img").src = postImageData;
+                                postImagePreview.querySelector("img").src = e.target.result;
                             };
                             reader.readAsDataURL(file);
                         };
@@ -443,15 +443,15 @@
                     }
 
                     // RENDER
-                    function saveRender(post) {
+                    function saveRender(post) { // Modified , this function, copy it to home page
+
                         if (!editingPostId) {
                             fetch(String(window.location.origin) + "/posts/create/", {
                                 method: "POST",
                                 headers: {
-                                    'Content-Type': "application/json",
                                     'X-CSRFToken': getCookie('csrftoken')
                                 },
-                                body: JSON.stringify(post)
+                                body: objectToFormData(post)
 
                             }).then((response) => {
                                 if (response.status === 200) {
@@ -472,7 +472,47 @@
                         }
 
                     }
+                    function objectToFormData(obj, formData = new FormData(), parentKey = '') {
+                        for (let key in obj) {
+                            if (!obj.hasOwnProperty(key)) continue;
 
+                            const value = obj[key];
+                            const formKey = parentKey ? `${parentKey}[${key}]` : key;
+
+                            if (value === null || value === undefined) {
+                                continue;
+                            }
+
+                            // Handle File or Blob (images, etc.)
+                            if (value instanceof File || value instanceof Blob) {
+                                formData.append(formKey, value);
+                            }
+
+                            // Handle Date
+                            else if (value instanceof Date) {
+                                formData.append(formKey, value.toISOString());
+                            }
+
+                            // Handle Array
+                            else if (Array.isArray(value)) {
+                                value.forEach((item, index) => {
+                                    objectToFormData(item, formData, `${formKey}[${index}]`);
+                                });
+                            }
+
+                            // Handle Object (nested)
+                            else if (typeof value === 'object') {
+                                objectToFormData(value, formData, formKey);
+                            }
+
+                            // Handle primitive values
+                            else {
+                                formData.append(formKey, value);
+                            }
+                        }
+
+                        return formData;
+                    }
                     function renderPosts() {
                         console.log("Rendering posts");
                         let post_container = document.querySelector("#postsFeed");
