@@ -105,6 +105,7 @@ def get_usernames(request):
 )
     for i in range(len(usernames)):
         user = usernames[i]
+        print(user.user_name)
         file = user.profile_picture.read()
         base64_profile_picture = base64.b64encode(file).decode('utf-8')
         base64_profile_picture="data:image/png;base64,"+base64_profile_picture

@@ -1585,7 +1585,7 @@
             let search_profile_container = document.querySelector(".profile-searchcards");
 
             let usernames = [];
-            search_box.addEventListener("keydown", (e) => {
+            search_box.addEventListener("input", (e) => {
                 search_profile_container.style.display = "none";
                 document.querySelector(".profile-cards").style.display = "block";
                 let key = e.key
