@@ -187,7 +187,6 @@ class profile(APIView):
                     ~Q(blacklist=profile)
                 ).distinct()
             objects = list(contacts)
-            print(objects)
             for i in range(len(objects)):
                 profile_i = objects[i]
                 Inboxmodels.Inbox.objects.get_or_create(profile=profile)
