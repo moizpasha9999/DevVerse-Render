@@ -625,6 +625,9 @@
                 // Extract the URL
                 const urlMatch = bg.match(/url\(['"]?(.*?)['"]?\)/);
                 let imageUrl = urlMatch ? urlMatch[1] : null;
+                document.querySelectorAll(".post-profile").forEach((value) => {
+                    value.src = imageUrl;
+                });
                 profilePic.style.background = `url('${imageUrl}') center/cover no-repeat`;
                 lowerProfilePic.src = imageUrl;
                 imageUrl = editProfilePicBytes ? editProfilePicBytes : null;
@@ -641,7 +644,6 @@
                     jobTitle: editjobTitle.value
                 };
                 update_profile(profilePayload);
-                get_posts();
 
             });
 
@@ -965,7 +967,7 @@
                         div.innerHTML = `
                         <div class="d-flex justify-content-between header functionBtn">
                         <div class="d-flex">
-                            <img src="${p.postbox.profile_picture}" class="rounded-circle me-2" style="height:50px; width:50px; ">
+                            <img src="${p.postbox.profile_picture}" class="rounded-circle me-2 post-profile" style="height:50px; width:50px; ">
                             <div>
                             <strong style="display:block;">${p.postbox.user}</strong>
                             ${p.is_owned ? with_dropdown : without_dropdown}
