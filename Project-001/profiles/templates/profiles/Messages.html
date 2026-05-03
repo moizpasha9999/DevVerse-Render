@@ -727,7 +727,7 @@
             {% include 'profiles/base.html' %}
 
         </div>
-        <div class="emoji-picker" id="emojiPicker">
+        <div class="emoji-picker" id="emojiPicker" style="z-index:1000;">
             <!-- Emojis will be inserted here dynamically -->
         </div>
 
@@ -1001,14 +1001,7 @@
                 FileSize = (file.size / (1024 * 1024)).toFixed(2);
 
                 if (!file) return;
-                const reader = new FileReader();
-                reader.onload = e => {
-                    console.log(String(file.name));
-                    sendFileData = e.target.result;
-                    
-
-                };
-                reader.readAsDataURL(file);
+                sendFileData = file;
 
             };
 
@@ -1025,9 +1018,9 @@
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
                 reader.onload = e => {
-                    sendImageData = e.target.result;
+                    sendImageData = file;
                     sendImagePreview.style.display = "block";
-                    sendImagePreview.querySelector("img").src = sendImageData;
+                    sendImagePreview.querySelector("img").src = e.target.result;
 
                 };
                 
@@ -1331,16 +1324,55 @@
         </script>
         <script>
 
+            function objectToFormData(obj, formData = new FormData(), parentKey = '') {
+                for (let key in obj) {
+                    if (!obj.hasOwnProperty(key)) continue;
 
+                    const value = obj[key];
+                    const formKey = parentKey ? `${parentKey}[${key}]` : key;
+
+                    if (value === null || value === undefined) {
+                        continue;
+                    }
+
+                    // Handle File or Blob (images, etc.)
+                    if (value instanceof File || value instanceof Blob) {
+                        formData.append(formKey, value);
+                    }
+
+                    // Handle Date
+                    else if (value instanceof Date) {
+                        formData.append(formKey, value.toISOString());
+                    }
+
+                    // Handle Array
+                    else if (Array.isArray(value)) {
+                        value.forEach((item, index) => {
+                            objectToFormData(item, formData, `${formKey}[${index}]`);
+                        });
+                    }
+
+                    // Handle Object (nested)
+                    else if (typeof value === 'object') {
+                        objectToFormData(value, formData, formKey);
+                    }
+
+                    // Handle primitive values
+                    else {
+                        formData.append(formKey, value);
+                    }
+                }
+
+                return formData;
+            }
             function send_message(message) {
 
                 fetch(window.location.origin + "/messages/send/", {
                     method: "POST",
                     headers: {
-                        'Content-Type': "application/json",
                         'X-CSRFToken': getCookie('csrftoken')
                     },
-                    body: JSON.stringify(message)
+                    body: objectToFormData(message)
                 }).then((response) => {
                     if (response.status == 200) {
                         let data = response.json();

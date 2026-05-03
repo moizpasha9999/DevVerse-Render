@@ -1,11 +1,12 @@
 from django.http.response import JsonResponse
 from django.shortcuts import render
 from django.http import FileResponse, Http404
-import json
+import json, traceback
 from . import models
 from profiles.models import Profiles, Activity
 from django.forms.models import model_to_dict
 from . import serializer
+from profiles import services
 import base64
 from django.core.files.base import ContentFile
 from django.conf import settings
@@ -73,7 +74,9 @@ def download_file(request):
 def send_message(request):
     try:
         print("Sending a message")
-        data = json.loads(request.body)
+        data = {**request.FILES, **request.POST}
+        for key,value in data.items(): data[key] = value[0]
+
         profile_instance = Profiles.objects.get(user_name=data["sender_username"])
         receiver_profile = Profiles.objects.get(user_name=data["receiver_username"])
         if (profile_instance in receiver_profile.blacklist.all()) or (receiver_profile in profile_instance.blacklist.all()):
@@ -105,12 +108,13 @@ def send_message(request):
             print("pass")
             instance = instance.save()
             instance.message.set(message, message_receiver)
-         
+        message_serialized = serializer.MessageSerializer(message).data
             
-        return JsonResponse({"status": "successful", "message": model_to_dict(message), "attachment": list(message.attachement.all())})
+        return JsonResponse({"status": "successful", "message": (message_serialized), "attachment": list(message.attachement.all())})
 
     except Exception as e:
         print("Error2", e, sep=":")
+        traceback.print_exc()
         return JsonResponse({"status": "failed", "error": str(e)})
 
 
@@ -149,15 +153,24 @@ def load_inbox(request):
         messages = [message for message in messages if (message.sender_username == current_inbox or message.receiver_username == current_inbox)]
 
         returned = models.Message.objects.filter(id__in=[m.id for m in messages if str(m.sender_username) == request.GET.get("current_inbox") ]).update(seen=True)
-        messages = serializer.MessageSerializer(messages, many=True).data
-        for message in messages:
+        
+        for i in range(len(messages)):
+            message = messages[i]
+            time = message.timestamp
+            message = model_to_dict(message)
+            message["timestamp"] = time
+            if message["image"]:
+                file = message["image"].read()
+                message["image"] = services.bytes_to_base64(file)
+            else:
+                message["image"] = ""
             message["sender_username"] = Profiles.objects.get(id=message["sender_username"]).user_name
             message["receiver_username"] = Profiles.objects.get(id=message["receiver_username"]).user_name
             message["inbox"] = profile_instance.user_name
             attachements = models.Message.objects.get(id=message["id"]).attachement.all()
             message["file"] = serializer.AttachmentSerializer(attachements,many=True).data
-        #print(model_to_dict(messages))
-        #messages = model_to_dict(inbox.messages)
+            messages[i] = message
+        
         block_status = "None"
         for instance in profile_instance.blacklist.all():
             if instance == current_inbox: 
@@ -165,7 +178,7 @@ def load_inbox(request):
         return JsonResponse({"status":"successful", "messages": messages, "blocked": block_status} )
     except Exception as e:
         print(e)
-        return JsonResponse({"status": "failed", "error": "hey"})
+        return JsonResponse({"status": "failed", "error": str(e)})
 
 
 

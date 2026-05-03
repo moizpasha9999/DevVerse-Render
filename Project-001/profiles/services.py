@@ -8,6 +8,12 @@ import random, base64
 
 
 APP_PASSWORD="zkjx wagf vzid xinp"
+
+def bytes_to_base64(bytes_data):
+    base64_image = base64.b64encode(bytes_data).decode('utf-8')
+    base64_image="data:image/png;base64," +base64_image
+    return base64_image
+
 def get_verification_code():
     code = random.randint(100000, 999999)
     return code

@@ -129,6 +129,25 @@
       .cursor-pointer {
           cursor: pointer;
       }
+      .loader {
+          width: 50px;
+          height: 50px;
+          border: 6px solid #cfe2ff; /* light primary */
+          border-top: 6px solid #0d6efd; /* Bootstrap primary */
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin: 50px auto;
+      }
+
+      @keyframes spin {
+          0% {
+              transform: rotate(0deg);
+          }
+
+          100% {
+              transform: rotate(360deg);
+          }
+      }
 
   </style>
 </head>
@@ -300,7 +319,9 @@
                         <p class="fw-semibold fs-5  mb-1">Posts</p>
                         <div style="width:70px; height:3px; background:linear-gradient(to right, #0d6efd, transparent); border-radius:10px;"></div>
                     </div>
-                    <div id="postsFeed"></div>
+                    <div id="postsFeed">
+                        <div class="loader"></div>
+                    </div>
                 </section>
         {% include 'profiles/base.html' %}
         <script>

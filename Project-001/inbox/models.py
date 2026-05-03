@@ -9,6 +9,13 @@ def upload_file_path(instance, filename):
     receiver_id = instance.message.receiver_username.id
 
     return f"inbox/user_data/user_{sender_id}_to_{receiver_id}/{filename}"
+def upload_file_path_for_message(instance, filename):
+
+    # Use your logic: for example, sender_id & receiver_id
+    sender_id = instance.sender_username.id
+    receiver_id = instance.receiver_username.id
+
+    return f"inbox/user_data/user_{sender_id}_to_{receiver_id}/{filename}"
 
 class Inbox(models.Model):
     profile = models.OneToOneField(Profiles, on_delete=models.CASCADE, related_name="inbox")
@@ -19,7 +26,7 @@ class Message(models.Model):
     payload = models.TextField()
     inbox = models.ForeignKey(Inbox, on_delete=models.CASCADE, related_name="messages")
     timestamp = models.TimeField(auto_now=True)
-    image = models.TextField(null=True, blank=True);
+    image = models.ImageField(null=True, blank=True, upload_to=upload_file_path_for_message);
     seen = models.BooleanField(default= False)
     
 
