@@ -69,6 +69,7 @@ def profile_template(request, user_name):
                file = profile_i.profile_picture.read()
                base64_profile_picture = base64.b64encode(file).decode('utf-8')
                base64_profile_picture="data:image/png;base64," +base64_profile_picture
+               
                friends[i] = {"id": profile_i.id, "user_name": profile_i.user_name, "profile_picture": base64_profile_picture, "jobTitle": profile_i.jobTitle }
 
         projects_serialized = services.serialize_projects(profile)
@@ -77,6 +78,7 @@ def profile_template(request, user_name):
         posts = profile.postbox.posts.all() 
         posts_serialized = services.serialize_posts(posts, profile, viewer_profile)
         posts_serialized.reverse()
+        profile.profile_picture.seek(0)
         file =profile.profile_picture.read()
         base64_profile_picture = base64.b64encode(file).decode('utf-8')
         base64_profile_picture="data:image/png;base64," +base64_profile_picture
