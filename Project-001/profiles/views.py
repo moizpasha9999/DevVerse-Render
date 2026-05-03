@@ -109,7 +109,6 @@ def get_usernames(request):
         base64_profile_picture = base64.b64encode(file).decode('utf-8')
         base64_profile_picture="data:image/png;base64,"+base64_profile_picture
         usernames[i] = {"user_name": user.user_name, "profile_picture": base64_profile_picture, "jobTitle": user.jobTitle}
-    print(usernames)
    
     
     return JsonResponse({"status":"successful", "usernames":usernames})
