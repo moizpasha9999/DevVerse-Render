@@ -277,7 +277,7 @@
                                         <i class="bi bi-people fs-3 text-primary"></i>
                                         <div>
                                             <div class="fw-bold"> @${value.done_by}-Send a Message</div>
-                                            <small class="text-muted">${value.time}</small>
+                                            <small class="text-muted">${formatTimeAgo(value.time)}</small>
                                         </div>
 </div>
 
@@ -288,7 +288,7 @@
                                 <i class="bi bi-check-circle fs-3 text-success cursor-pointer"></i>
                                 <div>
                                     <div class="fw-bold">${value.detail}</div>
-                                    <small class="text-muted">${value.time}</small>
+                                    <small class="text-muted">${formatTimeAgo(value.time)}</small>
                              </div>
 </div>
 
