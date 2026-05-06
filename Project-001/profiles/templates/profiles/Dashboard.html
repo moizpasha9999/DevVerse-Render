@@ -148,6 +148,10 @@
               transform: rotate(360deg);
           }
       }
+      .outside-loader {
+          position: absolute;
+          left: 50%;
+      }
 
   </style>
 </head>
@@ -184,7 +188,7 @@
                                 <span><strong id="followers" class="followers">12.3K</strong> Followers</span>
                             </div>
                             <div class="d-flex gap-2">
-                                <button class="btn btn-outline-primary rounded-pill" id="shareProfileBtn"  onclick="">Share</button>
+                                <button class="btn btn-outline-primary rounded-pill" id="shareProfileBtn" onclick="">Share</button>
                                 <button class="btn btn-outline-primary rounded-pill" id="editProfileBtn">Edit Profile</button>
                             </div>
                         </div>
@@ -319,8 +323,11 @@
                         <p class="fw-semibold fs-5  mb-1">Posts</p>
                         <div style="width:70px; height:3px; background:linear-gradient(to right, #0d6efd, transparent); border-radius:10px;"></div>
                     </div>
-                    <div id="postsFeed">
-                        <div class="loader"></div>
+                    <div class="position-relative">
+                        <div class="loader outside-loader d-none"></div>
+                        <div id="postsFeed">
+                            <div class="loader"></div>
+                        </div>
                     </div>
                 </section>
         {% include 'profiles/base.html' %}
@@ -927,8 +934,10 @@
             }
 
             // RENDER
+            let loader = document.querySelector(".outside-loader");
             function saveRender(post) { //  , this function, copy it to home page
-                
+                loader.classList.remove("d-none");
+                postBtn.disabled = true;
                 if (!editingPostId) {
                     fetch(String(window.location.origin) + "/posts/create/", {
                         method: "POST",
@@ -1023,7 +1032,8 @@
                         post_container.appendChild(div);
                         section_html = section_tag.innerHTML;
 
-
+                        loader.classList.add("d-none");
+                        postBtn.disabled = false;
 
 
                     });

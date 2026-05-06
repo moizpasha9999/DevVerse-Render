@@ -128,22 +128,27 @@ def create_post(request):
     try:
         data = {**request.POST, **request.FILES}
         for key,value in data.items(): data[key] = value[0]
-        
-        print(data)
-        print(type(data))
+
         profile = Profilemodels.Profiles.objects.get(user_name=data["user_name"])
 
         if (profile.password==data["password"]):
 
             postBox = models.PostBox.objects.get_or_create(profile=profile)[0]
-
-            post = serializer.PostSerializer(data={
-            "payload": data["text"],
-            "postbox": postBox.id,
-            "likes": data["likes"],
-            "shares": data["shares"],
-            "image" : data["image"]
-        })
+            if (data.get("image")):
+                post = serializer.PostSerializer(data={
+                "payload": data["text"],
+                "postbox": postBox.id,
+                "likes": data["likes"],
+                "shares": data["shares"],
+                "image" : data["image"]
+            })
+            else:
+                post = serializer.PostSerializer(data={
+                "payload": data["text"],
+                "postbox": postBox.id,
+                "likes": data["likes"],
+                "shares": data["shares"],
+            })
             if post.is_valid():
                 post = post.save()
                 response_data = serializer.PostSerializer(post).data

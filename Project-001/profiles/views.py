@@ -205,9 +205,16 @@ class profile(APIView):
             return JsonResponse({"status":"failed", "error":str(e)})
 
     def patch(self, request):
-        profile = {**request.POST, **request.FILES}
-        for key,value in profile.items(): profile[key] = value[0]
+        content_type = request.content_type
 
+        if content_type == "application/json":
+            profile = json.loads(request.body)
+
+        elif content_type.startswith("multipart/form-data") or content_type == "application/x-www-form-urlencoded":
+            profile = {**request.POST.dict(), **request.FILES}
+
+        else:
+            profile = {}
         
         if profile.get("old_user_name"):
             instance = models.Profiles.objects.get(user_name = profile["old_user_name"] )
@@ -413,6 +420,7 @@ def credentials_authentication(request):
                 profile["phones"] = phones
                 profile["community"] = community
                 file = profile_instance.profile_picture.read()
+                print(file)
                 base64_profile_picture = base64.b64encode(file).decode('utf-8')
                 base64_profile_picture="data:image/png;base64," +base64_profile_picture
                 print("I am running")
