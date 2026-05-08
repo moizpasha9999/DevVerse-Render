@@ -598,6 +598,30 @@
             word-wrap: break-word; /* older fallback */
             word-break: break-all; /* more aggressive (optional) */
         }
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 6px solid #cfe2ff; /* light primary */
+            border-top: 6px solid #0d6efd; /* Bootstrap primary */
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 50px auto;
+        }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .outside-loader {
+            position: absolute;
+            left: 50%;
+            top: 20%;
+        }
     </style>
 </head>
 
@@ -625,7 +649,7 @@
                     <div class="messenger glass">
 
                         <!-- LEFT: CHAT LIST -->
-                        <div class="chat-list">
+                        <div class="chat-list position-relative">
 
                             <!-- SEARCH -->
                             <div class="chat-search">
@@ -634,9 +658,10 @@
                             </div>
 
                             <div class="profile-cards">
-
+                                <div class="loader"></div>
                             </div>
-                            <div class="profile-searchcards", style="display:none;">
+                            <div class="loader outside-loader d-none"></div>
+                            <div class="profile-searchcards" , style="display:none;">
 
                             </div>
                             <div class="error-message">
@@ -650,7 +675,7 @@
                             <!-- HEADER -->
                             <div class="chat-header">
                                 <div class="chat-user">
-
+                                    
                                 </div>
 
                                 <div class="chat-actions">
@@ -1585,6 +1610,8 @@
             let search_profile_container = document.querySelector(".profile-searchcards");
 
             let usernames = [];
+            let loader = document.querySelector(".outside-loader");
+
 
             search_box.addEventListener("focus", (e) => {
                 clearInterval(inboxLoop);
@@ -1596,6 +1623,9 @@
             });
             search_box.addEventListener("keydown", (e) => {
                 search_profile_container.style.display = "none";
+                loader.classList.remove("d-none");
+
+
                 document.querySelector(".profile-cards").style.display = "block";
                 let key = e.key
                 
@@ -1608,14 +1638,20 @@
 
                         if (search_term == "") {
                             generate_profile_cards();
+                            loader.classList.add("d-none");
 
                             return 0;
                         }
                     }
-                    else return 0;
+                    else {
+                        loader.classList.add("d-none");
+
+                        return 0;
+                    }
                 }
                 else if (search_term + key == "") {
                     generate_profile_cards();
+                    loader.classList.add("d-none");
                     return 0;
                 }
 
@@ -1642,6 +1678,8 @@
                         search_profile_container.innerHTML = inner_html;
                         search_profile_container.style.display = "block";
                         document.querySelector(".profile-cards").style.display = "none";
+                        loader.classList.add("d-none");
+
                         
                         bind_events_card();
                     });
