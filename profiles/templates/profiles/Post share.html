@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DevVerse — Multi-Section Dashboard (Fixed)</title>
+
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- AOS -->
+  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root{
+      --primary: #0d6efd;
+
+      /* general UI variables (will be overridden by body[data-theme]) */
+      --bg: #0d1114;
+      --surface-glass: rgba(255,255,255,0.06);
+      --surface-strong: rgba(255,255,255,0.09);
+      --muted: rgba(255,255,255,0.7);
+      --muted-2: rgba(255,255,255,0.5);
+      --neon: rgba(13,110,253,0.12);
+      --glow: 0 0 10px rgba(13,110,253,0.6), 0 0 20px rgba(13,110,253,0.4);
+      --text: #e6eef8;
+      --glass-border: rgba(255,255,255,0.05);
+      --card-shadow: 0 6px 30px rgba(2,6,23,0.6);
+    }
+
+    /* LIGHT THEME */
+    body[data-theme='light']{
+      --bg: #ffffff;
+      --surface-glass: rgba(15,23,42,0.03);
+      --surface-strong: rgba(15,23,42,0.05);
+      --muted: #6b7280; /* gray-500 */
+      --muted-2: #9ca3af;
+      --neon: rgba(13,110,253,0.06);
+      --glow: 0 6px 18px rgba(2,6,23,0.06);
+      --text: #1f2937;
+      --glass-border: rgba(15,23,42,0.04);
+      --card-shadow: 0 6px 24px rgba(15,23,42,0.06);
+    }
+
+    /* DARK THEME */
+    body[data-theme='dark']{
+      --bg: linear-gradient(180deg,#071019 0%, #0d1114 100%);
+      --surface-glass: rgba(255,255,255,0.04);
+      --surface-strong: rgba(255,255,255,0.06);
+      --muted: rgba(207,239,251,0.9);
+      --muted-2: rgba(207,239,251,0.7);
+      --neon: rgba(13,110,253,0.12);
+      --glow: 0 0 12px rgba(13,110,253,0.65), 0 0 26px rgba(13,110,253,0.35);
+      --text: #e6eef8;
+      --glass-border: rgba(255,255,255,0.05);
+      --card-shadow: 0 6px 30px rgba(2,6,23,0.6), var(--glow);
+    }
+
+    /* page basics */
+    html,body{height:100%; margin:0; font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto; -webkit-font-smoothing:antialiased;}
+    body{background:var(--bg); color:var(--text); transition:background .25s,color .25s;}
+    .text-muted { color: var(--muted-2) !important; }
+
+    /* scrollbars */
+    ::-webkit-scrollbar{width:8px;background:transparent}
+    ::-webkit-scrollbar-thumb{background:rgba(13,110,253,0.18);border-radius:8px}
+    ::-webkit-scrollbar-thumb:hover{background:rgba(13,110,253,0.32)}
+
+    /* SIDEBAR */
+    .sidebar{
+      width:260px;
+      background:var(--surface-glass);
+      backdrop-filter: blur(8px);
+      padding:22px 12px;
+      position:fixed; inset:0 auto 0 0;
+      box-shadow: var(--card-shadow);
+      transition: width .28s ease, left .28s ease, box-shadow .28s ease;
+      overflow-y:auto;
+      border-right:1px solid var(--glass-border);
+    }
+    .sidebar.collapsed{ width:72px; }
+
+    .brand{ font-weight:700; font-size:18px; padding:10px 14px; display:flex; align-items:center; gap:10px; color:var(--text); }
+    .sidebar .nav-link{ color:inherit; border-radius:8px; padding:10px 12px; display:flex; align-items:center; gap:12px; transition: all .22s ease; text-decoration:none; }
+    .sidebar .nav-link .label{ white-space:nowrap; transition: opacity .18s, transform .18s; }
+    .sidebar.collapsed .nav-link .label{ opacity:0; transform:translateX(-10px); pointer-events:none; }
+    .sidebar .nav-link:hover, .sidebar .nav-link.active{ background:var(--neon); color:var(--text); box-shadow: var(--glow); }
+
+    .sidebar-toggle{
+      position:absolute; top:14px; right:-18px;
+      width:36px; height:36px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+      cursor:pointer; background:var(--surface-strong); transition:transform .18s; border:1px solid var(--glass-border);
+      box-shadow: var(--glow);
+    }
+    .sidebar.collapsed .sidebar-toggle{ right:-14px; transform:rotate(180deg); }
+
+    /* MAIN */
+    .main{ margin-left:260px; padding:28px; transition:margin-left .28s ease;}
+    .sidebar.collapsed + .main{ margin-left:72px; }
+
+    /* GLASS CARDS */
+    .glass{
+      background:var(--surface-glass);
+      border-radius:12px;
+      padding:16px;
+      box-shadow: var(--card-shadow);
+      border:1px solid var(--glass-border);
+      transition: box-shadow .2s ease, transform .2s ease;
+    }
+    .glass:hover{ box-shadow:0 10px 40px rgba(2,6,23,0.12), var(--glow); }
+
+    /* PROJECT CARD hover */
+    .project-card{ transform-style:preserve-3d; transition:transform .45s cubic-bezier(.2,.9,.2,1), box-shadow .25s; overflow:hidden; border-radius:12px; border:0; background:transparent; }
+    .project-card:hover{ transform:translateY(-8px) rotateX(4deg) rotateY(6deg); box-shadow: var(--card-shadow); }
+
+    /* chart container to avoid scrollbar & overflow issues */
+    .chart-wrap{ position:relative; height:220px; overflow:hidden; border-radius:10px; }
+    canvas{ width:100% !important; height:100% !important; display:block; }
+
+    /* small screens */
+    @media (max-width:991px){
+      .sidebar{ left:-300px; }
+      .sidebar.show{ left:0; }
+      .main{ margin-left:0; padding:20px; }
+      .sidebar-toggle{ display:none; }
+    }
+
+    /*theme toggle*/
+    .theme-toggle {
+        position: fixed;
+        bottom: 20px; left: 20px;
+        width: 60px; height: 30px;
+        background: #e6e6e6;
+        border-radius: 30px;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 5px 8px; cursor: pointer;
+        overflow: hidden; z-index: 10;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        transition: background 0.4s;
+    }
+
+    .theme-toggle .icon { font-size: 14px; transition: color 0.4s; z-index:2; }
+    .theme-toggle .icon.sun { color: #f1c40f; }
+    .theme-toggle .icon.moon { color: #666; }
+    .theme-toggle .toggle-ball {
+        position: absolute; width: 24px; height: 24px; background: white;
+        border-radius: 50%; left: 4px; transition: all 0.4s ease; z-index:1;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    body.dark-theme .theme-toggle { background: #333; }
+    body.dark-theme .theme-toggle .icon.sun { color: #555; }
+    body.dark-theme .theme-toggle .icon.moon { color: #f1c40f; }
+    body.dark-theme .toggle-ball { transform: translateX(30px); background: #222; }
+
+  </style>
+</head>
+
+<body class="dark-theme" data-theme="light">
+
+    <body data-theme="dark" class="dark-theme">
+
+
+
+        <div class="app">
+            <!-- SIDEBAR -->
+         
+            <!-- MAIN -->
+            <main id="main" class="main">
+                <section class="section" id="singlePostPage">
+            <!-- Post Card -->
+            <div class="glass p-4 mb-3">
+
+                <!-- Author -->
+                <div class="d-flex align-items-center mb-3">
+                <img src="https://i.pravatar.cc/50?img=12"
+                    class="rounded-circle me-2"
+                    width="45" height="45">
+                <div>
+                    <strong>Ali Raza</strong><br>
+                    <small class="text-muted">@moizpasha1000 · 2h ago</small>
+                </div>
+                </div>
+
+                <!-- Post Content -->
+                <p id="postContent">
+                Building DevVerse 🔥 A next-gen dev social platform!
+                </p>
+
+                <!-- Post Image -->
+                <img src="https://picsum.photos/600/350"
+                    class="img-fluid rounded mb-3">
+
+                <!-- Post Stats -->
+                <div class="d-flex justify-content-between text-muted small mb-2">
+                <span id="likeCount">124 Likes</span>
+                <span id="commentCount">18 Comments</span>
+                </div>
+
+                <hr>
+
+                <!-- Actions -->
+                <div class="d-flex justify-content-around">
+                <button class="btn btn-sm btn-outline-primary" id="likeBtn">
+                    ❤️ Like
+                </button>
+                <button class="btn btn-sm btn-outline-primary">
+                    💬 Comment
+                </button>
+                <button class="btn btn-sm btn-outline-primary" id="shareBtn">
+                    🔁 Share
+                </button>
+                </div>
+
+            </div>
+
+            <!-- Add Comment -->
+            <div class="glass p-3 mb-3">
+                <textarea class="form-control mb-2"
+                        placeholder="Write a comment..."></textarea>
+                <button class="btn btn-primary btn-sm">Post Comment</button>
+            </div>
+
+            <!-- Comments -->
+            <div class="glass p-3">
+
+                <h6 class="mb-3">Comments</h6>
+
+                <div class="d-flex mb-3">
+                <img src="https://i.pravatar.cc/40?img=15"
+                    class="rounded-circle me-2"
+                    width="40">
+                <div>
+                    <strong>Sarah</strong>
+                    <p class="mb-1 small">
+                    This looks amazing 🔥
+                    </p>
+                </div>
+                </div>
+
+                <div class="d-flex">
+                <img src="https://i.pravatar.cc/40?img=22"
+                    class="rounded-circle me-2"
+                    width="40">
+                <div>
+                    <strong>Hamza</strong>
+                    <p class="mb-1 small">
+                    Waiting for launch 🚀
+                    </p>
+                </div>
+                </div>
+
+            </div>
+
+            </section>
+                <!-- Scripts (keep AOS, theme toggle, sidebar, tooltips, charts; remove sign-out login logic) -->
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+                <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+                <script>
+                    AOS.init({ duration: 700, once: true });
+                    function getCookie(name) {
+                        let cookies = [];
+
+                        // Step 1: Check if any cookies exist
+                        if (document.cookie) {
+                            // Step 2: Split cookie string into individual cookies
+                            cookies = document.cookie.split('; ');
+                        }
+
+                        // Step 3: Go through each cookie
+                        for (let i = 0; i < cookies.length; i++) {
+                            // Step 4: Split one cookie into [key, valueParts...]
+                            const parts = cookies[i].split('=');
+                            const key = parts[0];           // the cookie name
+                            const valueParts = parts.slice(1); // everything after the first '='
+
+                            // Step 5: If this cookie name matches the one we're looking for
+                            if (key === name) {
+                                // Step 6: Join value parts back together and decode
+                                const value = valueParts.join('=');
+                                return decodeURIComponent(value);
+                            }
+                        }
+
+                        // Step 7: If no match found, return null
+                        return null;
+                    }
+                    //Use base.html to get the profile_data in order to updte this line
+                    function update_data(data) {
+                        document.getElementById("postText").placeholder = `What's on your mind ${data["first_name"]}?`;
+                    }
+                    let posts = [];
+
+                    function get_posts() {
+                        fetch(String(window.location.origin) + `/posts/get?user_name=${JSON.parse(localStorage.getItem("profile")).user_name}`).then((response) => {
+                            if (response.status === 200) {
+                                let data = response.json();
+                                data.then((data) => {
+                                    if (data["message"] == "Unauthenticated") {
+                                        window.location.href = "/sign-in/";
+                                        return [];
+                                    }
+                                    else if (data["message"] == "Successful") {
+                                        return data["posts"];
+                                    }
+
+
+                                }).then((fetchedposts) => {
+                                    posts = fetchedposts;
+                                    console.log(posts);
+                                    renderPosts();
+
+                                });
+                            }
+
+                        });
+                    }
+                    get_posts();
+                    const postText = document.getElementById("postText");
+                    const postBtn = document.getElementById("postBtn");
+                    const postImage = document.getElementById("postImage");
+                    const addPostImageBtn = document.getElementById("addPostImageBtn");
+                    const postImagePreview = document.getElementById("postImagePreview");
+                    const postsFeed = document.getElementById("postsFeed");
+                    const mentionBox = document.getElementById("mentionBox");
+
+                    const friends = ["Sara", "Hassan", "Ahmed", "Ayesha"];
+
+
+                    let postImageData = "";
+                    let editingPostId = null;
+
+                    // IMAGE
+                    addPostImageBtn.onclick = () => postImage.click();
+                    postImage.onchange = () => {
+                        const file = postImage.files[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = e => {
+                            postImageData = e.target.result;
+                            postImagePreview.style.display = "block";
+                            postImagePreview.querySelector("img").src = postImageData;
+                        };
+                        reader.readAsDataURL(file);
+                    };
+
+                    // MENTIONS
+                    postText.addEventListener("input", () => {
+                        const value = postText.value;
+                        const at = value.lastIndexOf("@");
+
+                        if (at === -1) {
+                            mentionBox.style.display = "none";
+                            return;
+                        }
+
+                        const query = value.slice(at + 1).toLowerCase();
+                        const matches = friends.filter(f => f.toLowerCase().startsWith(query));
+
+                        if (!matches.length) {
+                            mentionBox.style.display = "none";
+                            return;
+                        }
+
+                        mentionBox.innerHTML = matches.map(f =>
+                            `<div style="cursor:pointer;" onclick="selectMention('${f}', ${at})">@${f}</div>`
+                        ).join("");
+
+                        mentionBox.style.display = "block";
+                    });
+
+                    function selectMention(name, index) {
+                        postText.value = postText.value.slice(0, index) + "@" + name + " ";
+                        mentionBox.style.display = "none";
+                    }
+
+                    // CREATE / UPDATE
+                    postBtn.onclick = () => {
+                        if (!postText.value.trim() && !postImageData) return;
+
+                        if (editingPostId) {
+                            const p = posts.find(x => x.id === editingPostId);
+                            postId = editingPostId
+                            p.text = postText.value;
+                            p.image = postImageData;
+                            editingPostId = null;
+                            postBtn.textContent = "Post";
+                            edit_posts({ id: postId, payload: postText.value, image: postImageData })
+                        } else {
+                            console.log(postImageData);
+                            posts.unshift({
+                                id: Date.now(),
+                                text: postText.value,
+                                image: postImageData,
+                                likes: 0,
+                                comments: [],
+                                shares: 0,
+                                pinned: false,
+                                user_name: JSON.parse(localStorage.getItem("profile")).user_name,
+                                password: JSON.parse(localStorage.getItem("profile")).password
+                            });
+                            saveRender(posts.at(0));
+
+                        }
+
+                        resetPost();
+                    };
+
+                    function resetPost() {
+                        postText.value = "";
+                        postImageData = "";
+                        postImage.value = "";
+                        postImagePreview.style.display = "none";
+                    }
+
+                    // RENDER
+                    function saveRender(post) {
+                        if (!editingPostId) {
+                            fetch(String(window.location.origin) + "/posts/create/", {
+                                method: "POST",
+                                headers: {
+                                    'Content-Type': "application/json",
+                                    'X-CSRFToken': getCookie('csrftoken')
+                                },
+                                body: JSON.stringify(post)
+
+                            }).then((response) => {
+                                if (response.status === 200) {
+                                    let data = response.json();
+                                    data.then((data) => {
+                                        if (data["message"] == "Unauthenticated")
+                                            window.location.href = "/sign-in/";
+                                        else if (data["message"] == "Created")
+                                            console.log(data["post"]);
+                                        get_posts();
+
+
+
+                                    });
+                                }
+
+                            });
+                        }
+
+                    }
+
+                    function renderPosts() {
+                        console.log("Started");
+                        
+                        postsFeed.innerHTML = "";
+                        console.log(posts
+                            .sort((a, b) => b.pinned - a.pinned).length
+                        );
+                        posts
+                            .sort((a, b) => b.pinned - a.pinned)
+                            .forEach((p) => {
+                                let with_dropdown = `   <small class="text-muted">${p.pinned ? "📌 Pinned" : p.timestamp}</small>
+                                       </div>
+   
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">⋮</button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><button class="dropdown-item" onclick="editPost(${p.id})">Edit</button></li>
+                                        <li><button class="dropdown-item" onclick="togglePin(${p.id})">${p.pinned ? "Unpin" : "Pin"}</button></li>
+                                        <li><button class="dropdown-item text-danger" onclick="deletePost(${p.id})">Delete</button></li>
+                                        </ul>
+                                    </div>`;
+                                let without_dropdown = `   <small class="text-muted">${p.timestamp}</small>
+           </div>
+   
+        `;
+
+                                const div = document.createElement("div");
+                                div.className = "glass p-3 mb-3";
+
+                                div.innerHTML = `
+                        <div class="d-flex justify-content-between">
+                        <div class="d-flex">
+                            <img src="${p.postbox.profile_picture}" class="rounded-circle me-2" style="height:50px; width:50px; ">
+                            <div>
+                            <strong style="display:block;">${p.postbox.user}</strong>
+                            ${p.is_owned ? with_dropdown : without_dropdown}
+                            
+
+                        </div>
+                        </div>
+                       
+                        </div>
+
+                        <p class="mt-2">${p.payload}</p>
+                        ${p.image ? `<img src="${p.image}" class="img-fluid rounded mb-2">` : ""}
+
+                        <div class="d-flex gap-4 small text-muted">
+                        <span onclick="likePost(${p.id})" id=like${p.id}>${!p.liked ? "♡" : "❤️"} ${p.likes}</span>
+                        <span onclick="toggleCommentBox(${p.id})">💬 ${p.comments.length}</span>
+                        <span onclick="sharePost(${p.id})">🔁 ${p.shares}</span>
+                        </div>
+
+                        <div id="comments-${p.id}" style="display:none;">
+                        <input class="form-control form-control-sm mt-2"
+                            placeholder="Write a comment..."
+                            onkeydown="addComment(event, ${p.id})">
+
+                        ${p.comments.map(c => `<div class="small mt-1">@${c.creater}:  ${c.content}</div>`).join("")}
+                        </div>
+                    `;
+
+                                postsFeed.appendChild(div);
+                            });
+                    }
+
+                    // ACTIONS
+
+                    function editPost(id) {
+                        const p = posts.find(x => x.id === id);
+                        postText.value = p.payload;
+                        postImageData = p.image;
+                        if (p.image) {
+                            postImagePreview.style.display = "block";
+                            postImagePreview.querySelector("img").src = p.image;
+                        }
+                        editingPostId = id;
+                        postBtn.textContent = "Update Post";
+                    }
+                    function edit_posts(post) {
+                        fetch(String(window.location.origin) + `/posts/edit/?user_name=${JSON.parse(localStorage.getItem("profile")).user_name}&password=${JSON.parse(localStorage.getItem("profile")).password}`, {
+                            method: "PATCH",
+                            headers: {
+                                'Content-Type': "application/json",
+                                'X-CSRFToken': getCookie('csrftoken')
+                            },
+                            body: JSON.stringify(post)
+
+                        }).then((response) => {
+                            if (response.status === 200) {
+                                let data = response.json();
+                                data.then((data) => {
+                                    if (data["message"] == "Unauthenticated") {
+                                        window.location.href = "/sign-in/";
+                                    }
+                                    console.log(data);
+                                    get_posts();
+                                }).then((promise) => {
+                                    if (post.comment) {
+                                        console.log("here budy");
+                                        toggleCommentBox(post.id);
+                                    }
+                                });
+                            }
+
+                        });
+                    }
+
+                    function likePost(id) {
+                        if ((posts.find((value) => value.id == id).liked))
+                            return 0;
+                        fetch(String(window.location.origin) + `/posts/like_post?user_name=${JSON.parse(localStorage.getItem("profile")).user_name}&post_id=${id}`).then((response) => {
+                            let data = response.json();
+                            data.then((data) => {
+                                if (data["message"] == "Liked successfuly") {
+                                    get_posts();
+
+                                }
+                            });
+                        })
+                        posts.find(p => p.id === id).likes++;
+
+                    }
+                    function sharePost(id) {
+                        posts.find(p => p.id === id).shares++;
+                    }
+
+
+                    function togglePin(id) {
+                        let pinned = posts.find(p => p.id === id).pinned
+                        edit_posts({ id: id, pinned: !pinned })
+
+                    }
+
+                    function deletePost(id) {
+                        edit_posts({ id: id, action: "delete" })
+
+                    }
+                    function toggleCommentBox(id) {
+                        console.log(id);
+                        const el = document.getElementById("comments-" + id);
+                        el.style.display = el.style.display === "none" ? "block" : "none";
+                    }
+
+                    function addComment(e, id) {
+                        if (e.key !== "Enter" || !e.target.value.trim()) return;
+                        edit_posts({ id: id, comment: e.target.value, user_name: JSON.parse(localStorage.getItem("profile")).user_name });
+                        e.target.value = "";
+                    }
+
+
+
+                </script>
+
+</body>
+</html>

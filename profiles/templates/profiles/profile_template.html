@@ -1,0 +1,548 @@
+﻿<!doctype html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>DevVerse</title>
+
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- AOS -->
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #0d6efd;
+            /* general UI variables (will be overridden by body[data-theme]) */
+            --bg: #0d1114;
+            --surface-glass: rgba(255,255,255,0.06);
+            --surface-strong: rgba(255,255,255,0.09);
+            --muted: rgba(255,255,255,0.7);
+            --muted-2: rgba(255,255,255,0.5);
+            --neon: rgba(13,110,253,0.12);
+            --glow: 0 0 10px rgba(13,110,253,0.6), 0 0 20px rgba(13,110,253,0.4);
+            --text: #e6eef8;
+            --glass-border: rgba(255,255,255,0.05);
+            --card-shadow: 0 6px 30px rgba(2,6,23,0.6);
+        }
+
+        /* LIGHT THEME */
+        body[data-theme='light'] {
+            --bg: #ffffff;
+            --surface-glass: rgba(15,23,42,0.03);
+            --surface-strong: rgba(15,23,42,0.05);
+            --muted: #6b7280; /* gray-500 */
+            --muted-2: #9ca3af;
+            --neon: rgba(13,110,253,0.06);
+            --glow: 0 6px 18px rgba(2,6,23,0.06);
+            --text: #1f2937;
+            --glass-border: rgba(15,23,42,0.04);
+            --card-shadow: 0 6px 24px rgba(15,23,42,0.06);
+        }
+
+        /* DARK THEME */
+        body[data-theme='dark'] {
+            --bg: linear-gradient(180deg,#071019 0%, #0d1114 100%);
+            --surface-glass: rgba(255,255,255,0.04);
+            --surface-strong: rgba(255,255,255,0.06);
+            --muted: rgba(207,239,251,0.9);
+            --muted-2: rgba(207,239,251,0.7);
+            --neon: rgba(13,110,253,0.12);
+            --glow: 0 0 12px rgba(13,110,253,0.65), 0 0 26px rgba(13,110,253,0.35);
+            --text: #e6eef8;
+            --glass-border: rgba(255,255,255,0.05);
+            --card-shadow: 0 6px 30px rgba(2,6,23,0.6), var(--glow);
+        }
+
+        /* page basics */
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            transition: background .25s,color .25s;
+        }
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        .text-muted {
+            color: var(--muted-2) !important;
+        }
+
+        /* scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            background: transparent
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(13,110,253,0.18);
+            border-radius: 8px
+        }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: rgba(13,110,253,0.32)
+            }
+
+
+        /* GLASS CARDS */
+        .glass {
+            background: var(--surface-glass);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--glass-border);
+            transition: box-shadow .2s ease, transform .2s ease;
+        }
+
+            .glass:hover {
+                box-shadow: 0 10px 40px rgba(2,6,23,0.12), var(--glow);
+            }
+
+
+        /* small screens */
+        @media (max-width:991px) {
+            .sidebar {
+                left: -300px;
+            }
+
+                .sidebar.show {
+                    left: 0;
+                }
+
+            .main {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .sidebar-toggle {
+                display: none;
+            }
+        }
+
+        /*theme toggle*/
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 60px;
+            height: 30px;
+            background: #e6e6e6;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5px 8px;
+            cursor: pointer;
+            overflow: hidden;
+            z-index: 10;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: background 0.4s;
+        }
+
+            .theme-toggle .icon {
+                font-size: 14px;
+                transition: color 0.4s;
+                z-index: 2;
+            }
+
+                .theme-toggle .icon.sun {
+                    color: #f1c40f;
+                }
+
+                .theme-toggle .icon.moon {
+                    color: #666;
+                }
+
+            .theme-toggle .toggle-ball {
+                position: absolute;
+                width: 24px;
+                height: 24px;
+                background: white;
+                border-radius: 50%;
+                left: 4px;
+                transition: all 0.4s ease;
+                z-index: 1;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            }
+
+        body.dark-theme .theme-toggle {
+            background: #333;
+        }
+
+            body.dark-theme .theme-toggle .icon.sun {
+                color: #555;
+            }
+
+            body.dark-theme .theme-toggle .icon.moon {
+                color: #f1c40f;
+            }
+
+
+        body.dark-theme .toggle-ball {
+            transform: translateX(30px);
+            background: #222;
+        }
+        .row.scroll-row {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+        }
+        .friend-img {
+            width: 60px; /* fixed size */
+            height: 60px; /* maintain square */
+            object-fit: cover; /* crop instead of stretching */
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- SIDEBAR -->
+        <!-- MAIN -->
+        <main id="main" class="main">
+            <!--Theme Toggle-->
+            <div class="theme-toggle" id="themeToggle">
+                <i class="bi bi-sun-fill icon sun"></i>
+                <i class="bi bi-moon-fill icon moon"></i>
+                <div class="toggle-ball" id="toggleBall"></div>
+            </div>
+
+            <!-- Sections -->
+            <!-- Profile Hero -->
+            <section>
+                <div class="glass p-4 mb-4 position-relative" style="background: var(--surface-strong); overflow:hidden;">
+                    <div class="d-flex flex-column align-items-center text-center">
+                        <div class="rounded-circle" id="profilePic" style="width: 120px; height: 120px; background: url('{{ profile.profile_picture }}') center/cover no-repeat; border: 4px solid var(--neon); box-shadow: var(--glow);"></div>
+                        <h3 class="mt-3 mb-1" id="profileName">{{ profile.first_name }} {{ profile.last_name }}</h3>
+                        <small class="user_name_template text-muted" id="{{ profile.id }}">@{{ profile.user_name }}</small>
+                        <p class="text-muted mb-0" id="jobTitle">{{ profile.jobTitle|default:'-' }}</p>
+                        <div class="d-flex gap-3 justify-content-center mb-2">
+                            <span><strong id="projects-numbers" class="projects-number">{{ projects_data|length }}</strong> Projects</span>
+                            <span><strong id="followers" class="followers">{{ profile.followers }}</strong> Followers</span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary rounded-pill" id="shareProfileBtn" onclick="shareProfile('{{profile.user_name}}')">Share</button>
+
+                            <button class="btn btn-outline-primary rounded-pill" id="followProfileBtn" onclick="followProfile('{{profile.user_name}}')">Follow</button>
+                            <button class="btn btn-primary rounded-pill d-none" id="UnfollowProfileBtn" onclick="followProfile('{{profile.user_name}}', unfollow=1)">Unfollow</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <ul class="nav nav-pills mb-4 justify-content-center gap-2" id="profileTabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="about-tab" data-bs-toggle="pill" data-bs-target="#aboutTab">About</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="projects-tab" data-bs-toggle="pill" data-bs-target="#projectstab">Projects</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="friends-tab" data-bs-toggle="pill" data-bs-target="#friendsTab">Friends</button>
+                    </li>
+                </ul>
+
+                <!-- Tab Contents -->
+                <div class="tab-content">
+                    <!-- About / Personal Info -->
+                    <div class="tab-pane fade show active" id="aboutTab">
+
+                        <!-- View Mode -->
+                        <div class="glass p-4 mb-4" id="profileView">
+                            <h6>Bio</h6>
+                            <p id="viewBio">{{ profile.about_info }}</p>
+                            <hr>
+                            <div class="row g-3">
+                                <div class="col-md-6"><strong>Email:</strong> <span id="viewEmail">{{ profile.email_id }}</span></div>
+                                <div class="col-md-6"><strong>Phone:</strong> <span id="viewPhone">{{profile.phones.number|default:"Not provided" }}</span></div>
+                                <div class="col-md-6"><strong>DOB:</strong> <span id="viewDOB">{{ profile.date_of_birth|default:"Not set" }}</span></div>
+                                <div class="col-md-6"><strong>Location:</strong> <span id="viewLocation"> {{ profile.location|default:"Not provided" }}</span></div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- Friends -->
+                    <div class="tab-pane fade mb-4" id="friendsTab">
+                        <div class="row g-3 scroll-row">
+                            {% for friend in friends %}
+                            <div class="col-4 col-md-2 text-center friend-container friends-item-link cursor-pointer" id="{{friend.user_name}}">
+                                <img src="{{friend.profile_picture}}" class="rounded-circle mb-1 friend-img">
+                                <div class="small">@{{friend.user_name}}</div>
+                            </div>
+                            {% empty %}
+                            <p class="text-center text-muted">No friends found.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="tab-pane fade projects-tab-content" id="projectstab">
+                        <!-- Example Project -->
+                        <div class="row mb-4" id="projects-container">
+                            <div class="row mb-4">
+                                {% for project in projects_data %}
+                                <div class="col-md-6 col-lg-4 project-card-wrapper">
+                                    <div class="glass p-3 project-card position-relative d-flex flex-column">
+                                        <i class="bi bi-braces mb-2"></i>
+                                        <h6 class="project-name">{{ project.name }}</h6>
+                                        <p class="small text-muted project-desc">{{ project.description }}</p>
+
+                                        <div class="mt-2 d-flex gap-2">
+                                            <button class="btn btn-sm btn-outline-primary cursor-pointer"
+                                                    onclick="window.location.href='{{ project.link }}'">
+                                                View
+                                            </button>
+
+                                            <button class="btn btn-sm btn-outline-danger">
+                                                Share
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <p class="text-center text-muted">No projects found.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                </div>
+                <div class="ms-2 mb-3">
+                    <p class="fw-semibold fs-5  mb-1">Posts</p>
+                    <div style="width:70px; height:3px; background:linear-gradient(to right, #0d6efd, transparent); border-radius:10px;"></div>
+                </div>
+                <div id="postsFeed">
+                    {%for post in posts%}
+                    <div class="glass p-3 mb-3">
+                        <div class="d-flex justify-content-between">
+                            <div class="d-flex">
+                                <img src="{{post.postbox.profile_picture}}" class="rounded-circle me-2" style="height:50px; width:50px; ">
+                                <div>
+                                    <strong style="display:block;">{{post.postbox.user}}</strong>
+
+                                    <small class="text-muted">{{post.timestamp}}</small>
+                                </div>
+
+
+                            </div>
+                        </div>
+
+
+
+                        <p class="mt-2">{{post.payload}}</p>
+                        {%if post.image%}
+                        <img class="img-fluid rounded mb-2" src="{{post.image}}" />
+                        {%endif%}
+                        <div class="d-flex gap-4 small text-muted">
+                            <span onclick="likePost('{{post.id}}')" id="like{{post.id}}" class="cursor-pointer">
+                                {%if post.liked%}
+                                ❤️
+                                {%else%}
+                                ♡
+                                {%endif%}
+                                {{post.likes}}
+                            </span>
+                            <span onclick="toggleCommentBox('{{post.id}}')" id="comment-number-{{post.id}}" class="cursor-pointer">💬{{post.comments|length}} </span>
+                            <span onclick="sharePost('{{post.id}}')" id="share{{post.id}}" class="cursor-pointer">🔁 {{post.shares}}</span>
+                        </div>
+
+                        <div id="comments-{{post.id}}" style="display:none;">
+                            <input class="form-control form-control-sm mt-2" placeholder="Write a comment..." onkeydown="addComment(event, '{{post.id}}')">
+                            {%for comment in post.comments%}
+                            <div class="small mt-1">@{{comment.creater}}:  {{comment.content}}</div>
+                            {%endfor%}
+
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-center text-muted">No posts found.</p>
+                    {%endfor%}
+                </div>
+            </section>
+        </main>
+        </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+            {% include 'profiles/base.html' %}
+    <script>
+
+        function likePost(id) {
+
+
+            fetch(String(window.location.origin) + `/posts/like_post?user_name=${JSON.parse(localStorage.getItem("profile")).user_name}&post_id=${id}`).then((response) => {
+                let data = response.json();
+                data.then((data) => {
+                    if (data["message"] == "Liked successfuly") {
+                        document.querySelector(`#like${id}`).innerHTML = `❤️ ${data["likes"]}`;
+
+                    }
+                });
+            })
+
+
+        }
+        function shareProfile(user_name) {
+            let link = window.location.origin + "/user/profile/" + user_name + `?viewer=${toBase64(JSON.parse(localStorage.getItem("profile")).user_name)}`;
+            // Coming back
+            localStorage.setItem("message", link);
+            window.location.href = window.location.origin + "/messages/";
+
+        }
+        
+        function followProfile(user_name, unfollow=0) {
+            fetch(String(window.location.origin) + `/follow/profile/?user_name=${JSON.parse(localStorage.getItem("profile")).user_name}&password=${JSON.parse(localStorage.getItem("profile")).password}&following_profile=${user_name}&unfollow=${unfollow}`
+            ).then((response) => {
+                if (response.status === 200) {
+                    let data = response.json();
+                    data.then((data) => {
+                        if (data["message"] == "Unauthenticated") {
+                            window.location.href = "/sign-in/";
+                        }
+                        else if (data["message"] == "Followed successfully") {
+                            document.querySelector("strong.followers").innerText = data["followers"]
+                            toggleFollowbtn();
+                        }
+
+                    });
+                }
+
+            });
+        }
+        function toggleFollowbtn() {
+            follow_btn = document.querySelector("#followProfileBtn");
+            unfollow_btn = document.querySelector("#UnfollowProfileBtn");
+            if (unfollow_btn.classList.contains("d-none")) {
+                unfollow_btn.classList.remove("d-none")
+                follow_btn.classList.add("d-none")
+            }
+            else {
+                unfollow_btn.classList.add("d-none")
+                follow_btn.classList.remove("d-none")
+            }
+        }
+        function getCookie(name) {
+            let cookies = [];
+
+            // Step 1: Check if any cookies exist
+            if (document.cookie) {
+                // Step 2: Split cookie string into individual cookies
+                cookies = document.cookie.split('; ');
+            }
+
+            // Step 3: Go through each cookie
+            for (let i = 0; i < cookies.length; i++) {
+                // Step 4: Split one cookie into [key, valueParts...]
+                const parts = cookies[i].split('=');
+                const key = parts[0];           // the cookie name
+                const valueParts = parts.slice(1); // everything after the first '='
+
+                // Step 5: If this cookie name matches the one we're looking for
+                if (key === name) {
+                    // Step 6: Join value parts back together and decode
+                    const value = valueParts.join('=');
+                    return decodeURIComponent(value);
+                }
+            }
+
+            // Step 7: If no match found, return null
+            return null;
+        }
+
+        function edit_posts(post) {
+            fetch(String(window.location.origin) + `/posts/edit/?user_name=${JSON.parse(localStorage.getItem("profile")).user_name}&password=${JSON.parse(localStorage.getItem("profile")).password}`, {
+                method: "PATCH",
+                headers: {
+                    'Content-Type': "application/json",
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(post)
+
+            }).then((response) => {
+                if (response.status === 200) {
+                    let data = response.json();
+                    data.then((data) => {
+                        if (data["message"] == "Unauthenticated") {
+                            window.location.href = "/sign-in/";
+                        }
+                        else if (data["message"] == "Successful") {
+
+                            if (Object.hasOwn(post, 'pinned')) {
+                                get_posts();
+                            }
+                            else if (Object.hasOwn(post, 'action')) {
+                                document.getElementById(`post-${post.id}`).remove();
+                            }
+                            else if (Object.hasOwn(post, 'shares')) {
+                                let shares = Number((document.getElementById(`share${post.id}`).innerHTML).at(-1))
+                                document.getElementById(`share${post.id}`).innerHTML = `🔁 ${shares + 1}`;
+                            }
+                            else if (Object.hasOwn(post, 'comment')) {
+
+                                el = document.getElementById(`comments-${post.id}`);
+                                const div = document.createElement("div");
+                                div.className = "small mt-1";
+                                div.textContent = `@${post.user_name}: ${post.comment}`;
+                                el.appendChild(div);
+                            }
+                            console.log(data);
+                        }
+                    });
+                }
+
+            });
+        }
+        function sharePost(id) {
+            let link = window.location.origin + "/posts/post/" + String(id) + `?viewer=${toBase64(JSON.parse(localStorage.getItem("profile")).user_name)}`;
+            localStorage.setItem("message", link);
+            let  shares = 1;
+            edit_posts({ id: id, shares: shares });
+            window.location.href = window.location.origin + "/messages/";
+
+
+        }
+        function toggleCommentBox(post_id) {
+            console.log("comments-" + String(post_id));
+            const el = document.getElementById("comments-" + String(post_id));
+            el.style.display = el.style.display === "none" ? "block" : "none";
+
+        }
+
+        function addComment(e, id) {
+            if (e.key !== "Enter" || !e.target.value.trim()) return;
+            edit_posts({ id: id, comment: e.target.value, user_name: JSON.parse(localStorage.getItem("profile")).user_name });
+            e.target.value = "";
+
+
+        }
+        function toBase64(str) {
+            const bytes = new TextEncoder().encode(str);
+            let binary = '';
+            bytes.forEach(b => binary += String.fromCharCode(b));
+            return btoa(binary);
+        }
+        function link_to_profile(class_name) {
+
+            let search_cards = document.querySelectorAll(`.${class_name}`);
+            search_cards.forEach((value) => {
+                value.addEventListener("click", () => {
+                    if (value.id == JSON.parse(localStorage.getItem("profile")).user_name) {
+                        window.location.href = window.location.origin + "/dashboard";
+                        return 0;
+                    }
+                    window.location.href = window.location.origin + "/user/profile/" + value.id + `?viewer=${toBase64(JSON.parse(localStorage.getItem("profile")).user_name)}`;
+                });
+            });
+        }
+        link_to_profile("friends-item-link");
+
+    </script>
+</body>

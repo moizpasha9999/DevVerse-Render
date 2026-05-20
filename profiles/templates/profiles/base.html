@@ -1,0 +1,355 @@
+<style>
+    /* SIDEBAR */
+    .sidebar {
+        width: 260px;
+        background: var(--surface-glass);
+        backdrop-filter: blur(8px);
+        padding: 22px 12px;
+        position: fixed;
+        inset: 0 auto 0 0;
+        box-shadow: var(--card-shadow);
+        transition: width .28s ease, left .28s ease, box-shadow .28s ease;
+        overflow-y: auto;
+        border-right: 1px solid var(--glass-border);
+    }
+
+        .sidebar.collapsed {
+            width: 72px;
+        }
+
+    .brand {
+        font-weight: 700;
+        font-size: 18px;
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--text);
+    }
+
+    .sidebar .nav-link {
+        color: inherit;
+        border-radius: 8px;
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all .22s ease;
+        text-decoration: none;
+    }
+
+        .sidebar .nav-link .label {
+            white-space: nowrap;
+            transition: opacity .18s, transform .18s;
+        }
+
+    .sidebar.collapsed .nav-link .label {
+        opacity: 0;
+        transform: translateX(-10px);
+        pointer-events: none;
+    }
+
+    .sidebar .nav-link:hover, .sidebar .nav-link.active {
+        background: var(--neon);
+        color: var(--text);
+        box-shadow: var(--glow);
+    }
+
+    .sidebar-toggle {
+        position: absolute;
+        top: 14px;
+        right: -18px;
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        background: var(--surface-strong);
+        transition: transform .18s;
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glow);
+    }
+
+    .sidebar.collapsed .sidebar-toggle {
+        right: -14px;
+        transform: rotate(180deg);
+    }
+
+   
+    #lowerProfilePic{
+        position:relative;
+    }
+
+</style>
+<aside id="sidebar" class="sidebar me-4">
+    <div class="d-flex align-items-center justify-content-between mb-3 px-2 devVerseTitle">
+        <div class="brand ms-2 devVerseicon"><i class="bi bi-code-slash me-2"></i>DevVerse</div>
+        <div class="sidebar-toggle" id="collapseBtn" title="Collapse sidebar" role="button" aria-pressed="false"><i class="bi bi-chevron-left"></i></div>
+    </div>
+
+    <nav class="nav flex-column mt-3">
+        <a href="{% url 'home' %}" class="nav-link" data-section="home" data-bs-toggle="tooltip" data-bs-placement="right" title="Home">
+            <i class="bi bi-house fs-5"></i><span class="label ms-1"> Home</span>
+        </a>
+
+        <a href="{% url 'dashboard' %}" class="nav-link" data-section="dashboard" data-bs-toggle="tooltip" data-bs-placement="right" title="Overview">
+            <i class="bi bi-speedometer2 fs-5"></i><span class="label ms-1"> Dashboard</span>
+        </a>
+
+        <a href="{% url 'projects' %}" class="nav-link" data-section="projects" data-bs-toggle="tooltip" data-bs-placement="right" title="Projects & portfolio">
+            <i class="bi bi-folder2-open fs-5"></i><span class="label ms-1"> Projects</span>
+        </a>
+
+        <a href="{% url 'messages' %}" class="nav-link" data-section="messages" data-bs-toggle="tooltip" data-bs-placement="right" title="Your messages">
+            <i class="bi bi-chat-dots fs-5"></i><span class="label ms-1"> Messages</span>
+        </a>
+
+        <a href="{% url 'activity' %}" class="nav-link position-relative" data-section="activity" data-bs-toggle="tooltip" data-bs-placement="right" title="Notifications & Activity">
+            <span class="position-absolute top-40 start-50 translate-middle
+     badge bg-danger rounded-circle d-flex align-items-center justify-content-center p-0 notify-badge"
+                  style="width: 20px; height: 20px; font-size: 12px;">
+                8
+            </span>
+            <i class="bi bi-bell fs-5"></i><span class="label ms-1"> Activity</span>
+        </a>
+
+        <a href="{% url 'settings' %}"
+           class="nav-link position-relative"
+           data-section="settings"
+           data-bs-toggle="tooltip"
+           data-bs-placement="right"
+           title="Settings">
+
+            
+
+            <i class="bi bi-gear fs-5"></i>
+            <span class="label ms-1">Settings</span>
+        </a>
+    </nav>
+
+
+    <div class="mt-auto px-2 pb-4">
+        <div class="d-flex gap-2 align-items-center mb-2 lowerDiv" style="position: relative; left:-10px;">
+            <img src="" class="rounded-circle" style="width:50px;height:50px;" alt="me" , id="lowerProfilePic">
+            <div class="small lowerDetails" style="color:var(--text)"><span id="lowerProfileName"></span><br><span style="opacity:.7;color:var(--muted) ;" id="lowerjobTitle"></span></div>
+        </div>
+    </div>
+</aside>
+<script>
+    if (!localStorage.getItem("profile")) {
+        window.location.href = "/sign-in/";
+
+    }
+
+
+    // Sidebar collapse behavior with persistence
+    const sidebar = document.getElementById('sidebar');
+    const collapseBtn = document.getElementById('collapseBtn');
+    function capitalize(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+    // Load previous collapsed state
+    if (localStorage.getItem('devv_sidebar_collapsed') === '1') {
+        sidebar.classList.add('collapsed');
+        collapseBtn.innerHTML = '<i class="bi bi-chevron-right"></i>';
+        collapseBtn.setAttribute('aria-pressed', 'true');
+        document.querySelector(".main").style.marginLeft = "72px";
+        document.querySelector(".lowerDiv").style.left = "-10px";
+        document.querySelector(".lowerDetails").style.visibility = "hidden";
+        document.querySelector(".devVerseicon").style.visibility = "hidden";
+
+    } else {
+        collapseBtn.innerHTML = '<i class="bi bi-chevron-left"></i>';
+        collapseBtn.setAttribute('aria-pressed', 'false');
+        document.querySelector(".main").style.marginLeft = "260px";
+        document.querySelector(".lowerDiv").style.left = "0px";
+        document.querySelector(".lowerDetails").style.visibility = "visible";
+        document.querySelector(".devVerseicon").style.visibility = "visible";
+
+
+    }
+
+    collapseBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+        const isCollapsed = sidebar.classList.contains('collapsed');
+        collapseBtn.innerHTML = "";
+        collapseBtn.innerHTML = isCollapsed ? '<i class="bi bi-chevron-right"></i>' : '<i class="bi bi-chevron-left"></i>';
+        collapseBtn.setAttribute('aria-pressed', String(isCollapsed));
+        // persist
+        localStorage.setItem('devv_sidebar_collapsed', isCollapsed ? '1' : '0');
+        // ensure tooltips still work when collapsed (bootstrap tooltips remain bound)
+        if (isCollapsed) {
+            document.querySelector(".main").style.marginLeft = "72px";
+            document.querySelector(".lowerDiv").style.left = "-10px";
+            document.querySelector(".devVerseicon").style.visibility = "hidden";
+            document.querySelector(".lowerDetails").style.visibility = "hidden";
+
+
+
+        } else {
+            document.querySelector(".main").style.marginLeft = "260px";
+            document.querySelector(".lowerDiv").style.left = "0px";
+            document.querySelector(".devVerseicon").style.visibility = "visible";
+            document.querySelector(".lowerDetails").style.visibility = "visible";
+
+
+
+
+
+        }
+
+    });
+
+
+    
+
+    // Theme toggle: persist and update CSS variables + update charts colors
+    const themeToggle = document.getElementById('themeToggle');
+    const toggleBall = document.getElementById('toggleBall');
+    const body = document.body;
+
+    function applyTheme(theme) {
+        body.setAttribute('data-theme', theme);
+        document.documentElement.setAttribute('data-bs-theme', (theme === 'light') ? 'light' : 'dark');
+
+        // move toggle ball visually
+        if (theme === 'dark') { toggleBall.style.transform = 'translateX(27px)'; }
+        else { toggleBall.style.transform = 'translateX(0)'; }
+
+        localStorage.setItem('devv_theme', theme);
+    }
+
+    // init from localStorage
+    const savedTheme = localStorage.getItem('devv_theme');
+    if (savedTheme === 'light') applyTheme('light'); else applyTheme('dark');
+
+    themeToggle.addEventListener('click', () => {
+        const current = (body.getAttribute('data-theme') === 'light') ? 'light' : 'dark';
+        applyTheme(current === 'light' ? 'dark' : 'light');
+    });
+
+    // small helper for loader spin
+    (function addSpinKeyframe() {
+        const style = document.createElement('style');
+        style.innerHTML = '@keyframes spin{to{transform:rotate(360deg)}}';
+        document.head.appendChild(style);
+    })();
+</script>
+<script>
+
+    let lowerProfileName = document.getElementById("lowerProfileName");
+    let lowerJobTitle = document.getElementById("lowerjobTitle");
+    let LowerProfilePic = document.getElementById("lowerProfilePic");
+    function getCookie(name) {
+        let cookies = [];
+
+        // Step 1: Check if any cookies exist
+        if (document.cookie) {
+            // Step 2: Split cookie string into individual cookies
+            cookies = document.cookie.split('; ');
+        }
+
+        // Step 3: Go through each cookie
+        for (let i = 0; i < cookies.length; i++) {
+            // Step 4: Split one cookie into [key, valueParts...]
+            const parts = cookies[i].split('=');
+            const key = parts[0];           // the cookie name
+            const valueParts = parts.slice(1); // everything after the first '='
+
+            // Step 5: If this cookie name matches the one we're looking for
+            if (key === name) {
+                // Step 6: Join value parts back together and decode
+                const value = valueParts.join('=');
+                return decodeURIComponent(value);
+            }
+        }
+
+        // Step 7: If no match found, return null
+        return null;
+    }
+    let first_name = "";
+    function update_post_placeholder() {
+        try {
+            document.getElementById("postText").placeholder = `What's on your mind, ${first_name}?`;
+        }
+        catch {
+            console.log("No post Text entry found");
+        }
+    }
+    function update_data(data) {
+        console.log(data);
+        lowerProfileName.innerText = capitalize(data["first_name"]) + " " + capitalize(data["last_name"]);
+        first_name = data["first_name"];
+        update_post_placeholder();
+        lowerJobTitle.innerText = data["jobTitle"];
+        if (data["active_notifications"] > 0)
+            document.querySelector(".notify-badge").innerHTML = data["active_notifications"];
+        else
+            document.querySelector(".notify-badge").classList.add("d-none");
+
+        if (data["profile_picture"]) {
+            console.log("Updated");  lowerProfilePic.src = data["profile_picture"];
+            
+        }
+        else {
+            console.log("Not Updated"); lowerProfilePic.src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSnSSxXHLqu5lsHYkFlZkvXuo2ZamNvdqLiCg&s';
+            
+
+        }
+    }
+    function redirect_profile() {
+        if (localStorage.getItem("profile")) {
+            let profile = JSON.parse(localStorage.getItem("profile"));
+            profile.return_data = true
+            fetch(window.location.origin + "/redirect_profile/", {
+                method: "POST",
+                headers: {
+                    'Content-Type': "application/json",
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(profile)
+            }).then((response) => {
+                if (response.status == 200) {
+                    let data = response.json()
+                    data.then((data) => {
+                        if (data["message"] == "Redirecting") {
+                            profile_data = data;
+                            console.log("Checking try blocks");
+                            try {
+                                if (profile_data.following.includes(Number(document.querySelector(".user_name_template").id))) {
+                                    console.log("I am true");
+                                    toggleFollowbtn();
+                                }
+                                console.log(profile_data.following);
+                                console.log((document.querySelector(".user_name_template").id));
+
+                            }
+                            catch {
+                                console.log("hahahah");
+
+                            }
+                            console.log(profile_data);
+                            update_data(profile_data);
+                            
+                        }
+                        else if (data["message"] == "Email not verified") {
+                            window.location.href = "/Email-Verification/";
+                        }
+                        else if (data["message"] == "Incorrect Password" || data["message"] == "Incorrect Password or username") {
+                            window.location.href = "/sign-in/";
+
+                        }
+                        else {
+                            return false;
+                        }
+                    })
+
+                }
+            });
+        }
+    }
+    redirect_profile();
+</script>
+
