@@ -108,9 +108,9 @@
 
         <a href="{% url 'activity' %}" class="nav-link position-relative" data-section="activity" data-bs-toggle="tooltip" data-bs-placement="right" title="Notifications & Activity">
             <span class="position-absolute top-40 start-50 translate-middle
-     badge bg-danger rounded-circle d-flex align-items-center justify-content-center p-0 notify-badge"
+     badge bg-danger rounded-circle d-flex align-items-center justify-content-center p-0 notify-badge d-none"
                   style="width: 20px; height: 20px; font-size: 12px;">
-                8
+                
             </span>
             <i class="bi bi-bell fs-5"></i><span class="label ms-1"> Activity</span>
         </a>
@@ -284,10 +284,14 @@
         first_name = data["first_name"];
         update_post_placeholder();
         lowerJobTitle.innerText = data["jobTitle"];
-        if (data["active_notifications"] > 0)
+        if (data["active_notifications"] > 0) {
+            document.querySelector(".notify-badge").classList.remove("d-none")
             document.querySelector(".notify-badge").innerHTML = data["active_notifications"];
-        else
+
+        }
+        else {
             document.querySelector(".notify-badge").classList.add("d-none");
+        }
 
         if (data["profile_picture"]) {
             console.log("Updated");  lowerProfilePic.src = data["profile_picture"];

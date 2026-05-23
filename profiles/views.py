@@ -2,9 +2,9 @@ import base64
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.http import Http404
-import json, os
+import json, os, mimetypes
 from django.core.files import File
-
+from django.http import FileResponse, Http404
 from django.conf import settings as django_settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
@@ -108,13 +108,24 @@ def get_usernames(request):
     for i in range(len(usernames)):
         user = usernames[i]
         print(user.user_name)
-        file = user.profile_picture.read()
-        base64_profile_picture = base64.b64encode(file).decode('utf-8')
-        base64_profile_picture="data:image/png;base64,"+base64_profile_picture
-        usernames[i] = {"user_name": user.user_name, "profile_picture": base64_profile_picture, "jobTitle": user.jobTitle}
+        file = "/image/profile/" + user.profile_picture.name.split("/")[-1]
+        
+        usernames[i] = {"user_name": user.user_name, "profile_picture": file, "jobTitle": user.jobTitle}
    
     
     return JsonResponse({"status":"successful", "usernames":usernames})
+
+def download_profile_picture(request, name):
+    file_path = os.path.join(django_settings.BASE_DIR, "MEDIA", "profile_pictures", name)
+    content_type, _ = mimetypes.guess_type(file_path)
+    print(file_path, content_type, sep="---")
+    return FileResponse(open(file_path, "rb"), content_type=content_type)
+
+def download_post_picture(request, name):
+    file_path = os.path.join(django_settings.BASE_DIR, "MEDIA", "posts", name)
+    content_type, _ = mimetypes.guess_type(file_path)
+    print(file_path, content_type, sep="---")
+    return FileResponse(open(file_path, "rb"), content_type=content_type)
 
 def follow_profile(request):
     user_name =request.GET.get("user_name")
@@ -193,10 +204,8 @@ class profile(APIView):
                 profile_i = objects[i]
                 Inboxmodels.Inbox.objects.get_or_create(profile=profile)
                 unseen = profile.inbox.messages.filter(seen=False, sender_username= profile_i).count()
-                file = profile_i.profile_picture.read()
-                base64_profile_picture = base64.b64encode(file).decode('utf-8')
-                base64_profile_picture="data:image/png;base64,"+base64_profile_picture
-                objects[i] = {"id": profile_i.id, "user_name": profile_i.user_name, "profile_picture": base64_profile_picture, "jobTitle": profile_i.jobTitle, "unseen":unseen }
+                file = "/image/profile/" + profile_i.profile_picture.name.split("/")[-1]
+                objects[i] = {"id": profile_i.id, "user_name": profile_i.user_name, "profile_picture": file, "jobTitle": profile_i.jobTitle, "unseen":unseen }
            
             
             #profiles_objects = serializer.ProfileSerializer(objects, many=True).data

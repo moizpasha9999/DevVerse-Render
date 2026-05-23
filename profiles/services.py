@@ -56,16 +56,13 @@ def serialize_posts(posts, profile, viewer_profile):
         post_dict["liked"] = False
         user = post.postbox.profile
         user.profile_picture.seek(0)  # reset pointer to start
-        file = user.profile_picture.read()
-        base64_profile_picture = base64.b64encode(file).decode('utf-8')
-        base64_profile_picture="data:image/png;base64," +base64_profile_picture
+        file_profile_picture = "/image/profile/" + user.profile_picture.name.split("/")[-1]
         if post.image:
-            base64_image = base64.b64encode(post.image.read()).decode('utf-8')
-            base64_image="data:image/png;base64," +base64_image
+            base64_image = "/image/post/" + post.image.name.split("/")[-1]
             post_dict["image"] = base64_image
         else:
             post_dict["image"] = False
-        post_dict["postbox"] = {"user": f"{user.first_name}  {user.last_name}", "profile_picture": base64_profile_picture, "user_name": user.user_name  }
+        post_dict["postbox"] = {"user": f"{user.first_name}  {user.last_name}", "profile_picture": file_profile_picture, "user_name": user.user_name  }
         post_dict["timestamp"] = post.timestamp
         post_dict["is_owned"] = True if (profile.id==user.id) else False
         for like in post.post_likes.all():

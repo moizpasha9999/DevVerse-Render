@@ -24,6 +24,8 @@ urlpatterns = [
     path('settings/', views.settings, name='settings'),
     path("get_activity/", views.get_activity),
     path("user/profile/<str:user_name>/", views.profile_template),
-    path("follow/profile/", views.follow_profile)
+    path("follow/profile/", views.follow_profile),
+    path("image/profile/<str:name>/", views.download_profile_picture),
+    path("image/post/<str:name>/", views.download_post_picture),
     
 ]

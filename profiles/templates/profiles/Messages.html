@@ -1668,9 +1668,7 @@
                         data["usernames"].forEach((value, index) => {
                             let html = `
                                             <div class="chat-item search-item cursor-pointer" id="${value.user_name}">
-                                               <img src="${value.profile_picture.startsWith('data')
-                                    ? value.profile_picture
-                                    : `data:image/png;base64,${value.profile_picture}`}" />
+                                               <img src="${value.profile_picture}" />
                                                 <div>
                                                     <div class="name user_name">@${value.user_name}</div>
                                                     <div class="last-msg">${(value.jobTitle)? value.jobTitle: ""}</div>
