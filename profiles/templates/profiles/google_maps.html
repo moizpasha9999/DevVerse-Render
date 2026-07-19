@@ -57,7 +57,7 @@
                                 type="text"
                                 class="form-control"
                                 id="profession"
-                                placeholder="Restaurant"
+                                placeholder="E.g: Restaurant"
                                 required>
                     </div>
 
@@ -70,7 +70,7 @@
                                 type="text"
                                 class="form-control"
                                 id="location"
-                                placeholder="Toronto"
+                                placeholder="E.g: Toronto"
                                 required>
                     </div>
 
@@ -84,7 +84,7 @@
                                 class="form-control"
                                 id="limit"
                                 min="1"
-                                value="10"
+                                placeholder = "E.g: 10"
                                 required>
                     </div>
 
@@ -125,18 +125,18 @@
 
 
 <script>
-
+let parsed_data = [];
 const messages = [
 
     "Preparing browser...",
     "Launching Chrome...",
-    "Loading Google Maps...",
+    "Try to relax",
     "Please be patient...",
-    "Searching businesses...",
+    "Go for a walk maybe",
     "Almost there...",
-    "Collecting information...",
-    "This may take a minute...",
-    "Thank you for waiting..."
+    "Take a sip of water",
+    "Maybe you should sit down",
+    "Take deep breaths"
 
 ];
 
@@ -167,7 +167,7 @@ document
 
     const payload={
 
-        profession:document.getElementById("profession").value,
+        category:document.getElementById("profession").value,
         location:document.getElementById("location").value,
         limit:Number(document.getElementById("limit").value)
 
@@ -175,7 +175,7 @@ document
 
     try{
 
-        const response=await fetch("/projects/automation_bot/",{
+        const response=await fetch("/projects/google_maps_bot/",{
 
             method:"POST",
 
@@ -196,13 +196,43 @@ document
 
             const data=await response.json();
 
-            console.log(data);
+            if (data.status == 'success'){
+                        parsed_data = data.result;
+                        document.body.innerHTML = `
+            <div class="container-fluid vh-100 d-flex flex-column justify-content-center align-items-center bg-light">
+                <div class="text-center p-5 shadow-sm bg-white rounded">
+                    <h1 class="display-4 text-success mb-3">Successfully imported data</h1>
+                    <p class="lead mb-4 text-muted">Your data has been processed and is ready for use.</p>
+                    <button 
+                    onclick="download_excel()" 
+                    class="btn btn-primary btn-lg px-4">
+                    Download as Excel sheet
+                    </button>
+                </div>
+            </div>
+        `;
+            }
+            else {
+                  document.body.innerHTML = `
+            <div class="container-fluid vh-100 d-flex flex-column justify-content-center align-items-center bg-light">
+                <div class="text-center p-5 shadow-sm bg-white rounded">
+                    <h1 class="display-4 text-danger mb-3">An Error Occured, reload and try again</h1>
+                </div>
+            </div>
+        `;
+            }
 
             // Redirect or display results here.
 
         }else{
 
-            loaderMessage.innerText="Something went wrong.";
+            document.body.innerHTML = `
+            <div class="container-fluid vh-100 d-flex flex-column justify-content-center align-items-center bg-light">
+                <div class="text-center p-5 shadow-sm bg-white rounded">
+                    <h1 class="display-4 text-danger mb-3">An Error Occured, reload and try again</h1>
+                </div>
+            </div>
+        `;
 
         }
 
@@ -218,6 +248,38 @@ document
 
 });
 
+ function download_excel() {
+
+        fetch('/projects/download_excel/', { 
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                "X-CSRFToken":getCookie("csrftoken"),
+
+            },
+            body: JSON.stringify(parsed_data) /* add any required post data here */ }).then(async response => {
+    const blob = await response.blob();
+
+    const disposition = response.headers.get("Content-Disposition");
+    let filename = "results.xlsx";
+
+    if (disposition) {
+        const match = disposition.match(/filename="?([^"]+)"?/);
+        if (match) {
+            filename = match[1];
+        }
+    }
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+
+    URL.revokeObjectURL(url);
+});
+        }
 
 function getCookie(name){
 
@@ -246,6 +308,7 @@ function getCookie(name){
     return cookieValue;
 
 }
+
 
 </script>
 

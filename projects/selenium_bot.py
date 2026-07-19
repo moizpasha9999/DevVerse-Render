@@ -5,7 +5,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
-
+import sys
 import time
 
 
@@ -18,14 +18,14 @@ class AutomationBot:
     def get_text(self, selector):
         """Return text content or None if element is missing."""
         try:
-            return self.driver.find_element(By.CSS_SELECTOR, selector).text.strip()
+            return self.panel.find_element(By.CSS_SELECTOR, selector).text.strip()
         except Exception:
             return None
 
     def get_attr(self, selector, attr):
         """Return attribute value or None if element is missing."""
         try:
-            return self.driver.find_element(By.CSS_SELECTOR, selector).get_attribute(attr)
+            return self.panel.find_element(By.CSS_SELECTOR, selector).get_attribute(attr)
         except Exception:
             return None
 
@@ -45,22 +45,23 @@ class AutomationBot:
         options.add_argument("--no-sandbox")
         options.add_experimental_option("prefs", prefs)
 
-        driver = webdriver.Chrome(version_main=150, options=options)
-        wait = WebDriverWait(self.driver, 10)
-        return driver, wait
-
+        self.driver = webdriver.Chrome(version_main=150, options=options)
+        self.wait = WebDriverWait(self.driver, 10)
+        self.driver.get("https://www.google.com/maps")
+    
     def run_automation(self, category, location, limit):
         t1 = time.time()
 
         
         try:
-            self.driver.get("https://www.google.com/maps")
+            print("Automation Started")
 
             # 1. Perform Search
             search_query = f"{category} in {location}"
             search_bar = self.wait.until(
                 EC.presence_of_element_located((By.NAME, "q"))
             )
+            print("Search Bar found")
             search_bar.send_keys(search_query + Keys.ENTER)
 
             results_data = []
@@ -69,15 +70,17 @@ class AutomationBot:
             # 2. Results and Scrolling Logic
             count = 0
             while len(results_data) < limit:
+                print("Loop Started")
                 # Locate the results feed
                 feed = WebDriverWait(self.driver, 8).until(
                     EC.presence_of_element_located((By.CSS_SELECTOR, 'div[role="feed"]'))
                 )
 
                 # Scroll action
-                self.driver.execute_script(
-                    "arguments[0].scrollTop = arguments[0].scrollHeight", feed
-                )
+                for i in range(3):
+                    self.driver.execute_script(
+                        "arguments[0].scrollTop = arguments[0].scrollHeight", feed
+                    )
 
                 items = self.driver.find_elements(By.CLASS_NAME, "hfpxzc")
 
@@ -91,9 +94,13 @@ class AutomationBot:
                         WebDriverWait(self.driver, 8).until(
                             EC.presence_of_element_located((By.CSS_SELECTOR, 'h1.DUwDvf'))
                         )
-
-                        name = self.get_text("h1.DUwDvf") if (self.get_text("h1.DUwDvf")) else self.get_text("span.a5H0ec")
-
+                        self.panel = self.driver.find_element(By.CLASS_NAME, "k7jAl")
+                        name = self.get_text("h1.DUwDvf")
+                        name = name if (name) else self.get_text("span.a5H0ec")
+                        reviews = self.panel.find_element(
+                                    By.CSS_SELECTOR,
+                                    "span[role='img'][aria-label*='reviews']"
+                                )
                         if name in seen_names:
                             continue
 
@@ -101,7 +108,7 @@ class AutomationBot:
                         details = {
                             "full_name": name,
                             "rating": self.get_text("span.MW4etd"),
-                            "review_count": self.get_text("span[aria-label*='reviews']"),
+                            "review_count": reviews.text,
                             "address": self.get_text("button[data-item-id='address'] .Io6YTe"),
                             "website": self.get_attr("a[data-item-id='authority']", "href"),
                             "phone": self.get_text("button[data-item-id^='phone'] .Io6YTe"),
@@ -109,7 +116,7 @@ class AutomationBot:
                             "link": item.get_attribute("href"),
                         }
 
-                        links = self.driver.find_elements(By.TAG_NAME, 'a')
+                        links = self.panel.find_elements(By.TAG_NAME, 'a')
                         for link in links:
                             url = link.get_attribute('href')
                             if url and "facebook.com" in url:
@@ -145,12 +152,14 @@ class AutomationBot:
             # 4. Format with Pandas
             
             t2 = time.time()
-            return results_data, t2-t1
+            return results_data, t2-t1, 'success'
             
 
         except Exception as e:
             t2 = time.time()
-            return f"Error: {e}", t2-t1
+            _, _, tb = sys.exc_info()
+            line_no = tb.tb_lineno
+            return f"Error on line {line_no}: {e}", t2 - t1, 'error'
 
             
 

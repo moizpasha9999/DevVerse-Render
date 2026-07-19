@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from io import BytesIO
+from django.http import HttpResponse
 from rest_framework.views import APIView
 from . import models
 from profiles import models as Profilemodels
@@ -10,13 +12,15 @@ from . import functions
 from profiles import services
 from . import selenium_bot
 from selenium.common.exceptions import WebDriverException
+import pandas as pd
+from datetime import datetime
 
 
 
 
 # Create your views here.
 bot = selenium_bot.AutomationBot()
-bot.driver, bot.wait = bot.setup_driver()
+bot.setup_driver()
 
 
 def ensure_driver():
@@ -24,6 +28,8 @@ def ensure_driver():
 
     try:
         bot.driver.current_url
+        if bot.wait is None:
+            raise AttributeError("WebDriverWait is None")
     except (AttributeError, WebDriverException):
         bot = selenium_bot.AutomationBot()
         bot.driver, bot.wait = bot.setup_driver()
@@ -35,13 +41,31 @@ def google_maps_bot(request):
 def google_maps_automation(request):
     data = json.loads(request.body)
     result = bot.run_automation(**data)
-    return JsonResponse ({'status' : 'success', 'time_taken':result[1], 'result': result[0]})
+    return JsonResponse ({'status' : result[2], 'time_taken':result[1], 'result': result[0]})
     
-    
+def download_excel(request):
+    data = json.loads(request.body)
+    df = pd.DataFrame(data)
+    buffer = BytesIO()
+
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False)
+
+    buffer.seek(0)
+
+    response = HttpResponse(
+        buffer.getvalue(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    filename = f"results_{datetime.now():%Y%m%d_%H%M%S}.xlsx"
+
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    return response
+
 class project(APIView):
     def post(self, request):
         try:
-
             data = request.data
             print("I hvent crosse this line 18")
 
