@@ -8,11 +8,36 @@ from django.http import JsonResponse
 from django.forms.models import model_to_dict
 from . import functions
 from profiles import services
+from . import selenium_bot
+from selenium.common.exceptions import WebDriverException
+
 
 
 
 # Create your views here.
+bot = selenium_bot.AutomationBot()
+bot.driver, bot.wait = bot.setup_driver()
 
+
+def ensure_driver():
+    global bot
+
+    try:
+        bot.driver.current_url
+    except (AttributeError, WebDriverException):
+        bot = selenium_bot.AutomationBot()
+        bot.driver, bot.wait = bot.setup_driver()
+        
+def google_maps_bot(request):
+    ensure_driver()
+    return render(request, "profiles/google_maps.html")
+        
+def google_maps_automation(request):
+    data = json.loads(request.body)
+    result = bot.run_automation(**data)
+    return JsonResponse ({'status' : 'success', 'time_taken':result[1], 'result': result[0]})
+    
+    
 class project(APIView):
     def post(self, request):
         try:

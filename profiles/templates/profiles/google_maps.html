@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Maps Automation</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body{
+            background:#f8f9fa;
+            min-height:100vh;
+        }
+
+        .card{
+            border:none;
+            border-radius:18px;
+            box-shadow:0 10px 25px rgba(0,0,0,.08);
+        }
+
+        #loader-screen{
+            display:none;
+            height:100vh;
+        }
+
+        .loader-text{
+            font-size:1.2rem;
+            font-weight:500;
+            color:#555;
+            transition:.3s;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container py-5" id="form-screen">
+
+    <div class="row justify-content-center">
+
+        <div class="col-md-6">
+
+            <div class="card p-4">
+
+                <h2 class="text-center mb-4">
+                    Google Maps Automation
+                </h2>
+
+                <form id="automationForm">
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            Profession
+                        </label>
+
+                        <input
+                                type="text"
+                                class="form-control"
+                                id="profession"
+                                placeholder="Restaurant"
+                                required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            City / Location
+                        </label>
+
+                        <input
+                                type="text"
+                                class="form-control"
+                                id="location"
+                                placeholder="Toronto"
+                                required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">
+                            Number of Results
+                        </label>
+
+                        <input
+                                type="number"
+                                class="form-control"
+                                id="limit"
+                                min="1"
+                                value="10"
+                                required>
+                    </div>
+
+                    <button class="btn btn-primary w-100">
+                        Start Automation
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Loader -->
+
+<div id="loader-screen"
+     class="d-flex flex-column justify-content-center align-items-center">
+
+    <div class="spinner-border text-primary"
+         style="width:5rem;height:5rem;"
+         role="status">
+    </div>
+
+    <h4 class="mt-4">
+        Starting Automation...
+    </h4>
+
+    <p class="loader-text mt-2" id="loader-message">
+        Preparing browser...
+    </p>
+
+</div>
+
+
+<script>
+
+const messages = [
+
+    "Preparing browser...",
+    "Launching Chrome...",
+    "Loading Google Maps...",
+    "Please be patient...",
+    "Searching businesses...",
+    "Almost there...",
+    "Collecting information...",
+    "This may take a minute...",
+    "Thank you for waiting..."
+
+];
+
+let messageInterval;
+
+const loaderMessage =
+document.getElementById("loader-message");
+
+
+document
+.getElementById("automationForm")
+.addEventListener("submit", async function(e){
+
+    e.preventDefault();
+
+    document.getElementById("form-screen").style.display="none";
+    document.getElementById("loader-screen").style.display="flex";
+
+    let i=0;
+
+    messageInterval=setInterval(()=>{
+
+        i=(i+1)%messages.length;
+        loaderMessage.innerText=messages[i];
+
+    },2500);
+
+
+    const payload={
+
+        profession:document.getElementById("profession").value,
+        location:document.getElementById("location").value,
+        limit:Number(document.getElementById("limit").value)
+
+    };
+
+    try{
+
+        const response=await fetch("/projects/automation_bot/",{
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json",
+                "X-CSRFToken":getCookie("csrftoken")
+            },
+
+            body:JSON.stringify(payload)
+
+        });
+
+        clearInterval(messageInterval);
+
+        if(response.ok){
+
+            loaderMessage.innerText="Completed.";
+
+            const data=await response.json();
+
+            console.log(data);
+
+            // Redirect or display results here.
+
+        }else{
+
+            loaderMessage.innerText="Something went wrong.";
+
+        }
+
+    }catch(err){
+
+        clearInterval(messageInterval);
+
+        loaderMessage.innerText="Unable to connect to server.";
+
+        console.error(err);
+
+    }
+
+});
+
+
+function getCookie(name){
+
+    let cookieValue=null;
+
+    if(document.cookie && document.cookie!==""){
+
+        const cookies=document.cookie.split(";");
+
+        for(let cookie of cookies){
+
+            cookie=cookie.trim();
+
+            if(cookie.startsWith(name+"=")){
+
+                cookieValue=decodeURIComponent(cookie.substring(name.length+1));
+
+                break;
+
+            }
+
+        }
+
+    }
+
+    return cookieValue;
+
+}
+
+</script>
+
+</body>
+</html>
