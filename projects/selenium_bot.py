@@ -164,8 +164,3 @@ class AutomationBot:
             
 
         
-
-
-if __name__ == "__main__":
-    bot = AutomationBot()
-    bot.run_automation()
