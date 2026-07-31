@@ -1625,68 +1625,40 @@
                  inboxLoop = window.setInterval(() => { update_inbox(); }, 800);
                  profileCardsLoop = window.setInterval(() => { generate_profile_cards(); }, 800);
             });
-            search_box.addEventListener("keydown", (e) => {
-                search_profile_container.style.display = "none";
-                loader.classList.remove("d-none");
+            search_box.addEventListener("input", (e) => {
+            search_profile_container.style.display = "none";
+            loader.classList.remove("d-none");
+            document.querySelector(".profile-cards").style.display = "block";
 
+            const search_term = e.target.value;
 
-                document.querySelector(".profile-cards").style.display = "block";
-                let key = e.key
-                
-                let search_term = search_box.value;
+            if (search_term === "") {
+                generate_profile_cards();
+                loader.classList.add("d-none");
+                return;
+            }
 
-                if (key.length > 1) {
-                    if (key == "Backspace") {
-                        key = "";
-                        search_term = search_term.slice(0, search_term.length - 1);
-
-                        if (search_term == "") {
-                            generate_profile_cards();
-                            loader.classList.add("d-none");
-
-                            return 0;
-                        }
-                    }
-                    else {
-                        loader.classList.add("d-none");
-
-                        return 0;
-                    }
-                }
-                else if (search_term + key == "") {
-                    generate_profile_cards();
-                    loader.classList.add("d-none");
-                    return 0;
-                }
-
-                console.log(search_term);
-                fetch(window.location.origin + `/get-usernames?user_name=${JSON.parse(localStorage.getItem("profile")).user_name
-                  }&initials=${search_term + key}`).then((response) => {
-                    data = response.json();
-                    data.then((data) => {
-                        inner_html = ''
-                        data["usernames"].forEach((value, index) => {
-                            let html = `
-                                            <div class="chat-item search-item cursor-pointer" id="${value.user_name}">
-                                               <img src="${value.profile_picture}" />
-                                                <div>
-                                                    <div class="name user_name">@${value.user_name}</div>
-                                                    <div class="last-msg">${(value.jobTitle)? value.jobTitle: ""}</div>
-                                                </div>
-                                            </div>
-                                                    `
-                            inner_html += html
-                        });
-                        search_profile_container.innerHTML = inner_html;
-                        search_profile_container.style.display = "block";
-                        document.querySelector(".profile-cards").style.display = "none";
-                        loader.classList.add("d-none");
-
-                        
-                        bind_events_card();
+            fetch(window.location.origin + `/get-usernames?user_name=${JSON.parse(localStorage.getItem("profile")).user_name}&initials=${search_term}`)
+                .then(response => response.json())
+                .then(data => {
+                    let inner_html = '';
+                    data["usernames"].forEach((value) => {
+                        inner_html += `
+                            <div class="chat-item search-item cursor-pointer" id="${value.user_name}">
+                                <img src="${value.profile_picture}" />
+                                <div>
+                                    <div class="name user_name">@${value.user_name}</div>
+                                    <div class="last-msg">${value.jobTitle ? value.jobTitle : ""}</div>
+                                </div>
+                            </div>`;
                     });
-                })
-            })
+                    search_profile_container.innerHTML = inner_html;
+                    search_profile_container.style.display = "block";
+                    document.querySelector(".profile-cards").style.display = "none";
+                    loader.classList.add("d-none");
+                    bind_events_card();
+        });
+});
         </script>
 
     </body>
