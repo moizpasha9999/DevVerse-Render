@@ -3,7 +3,7 @@ import requests
 
 
 class DriveUploader():
-    def __init__(self, file_name, file_data, access_token="ya29.a0AX07CmsiGKUBE5RSAHXn47Nr1eN6F638ZoC-IcOkUiicR4LYW16oAA77TE145gxNSLDBavobjAyvDHYaUAL36bixeEz0rDK-HJo3dYn57Zw1K6yFFUiPxUAt5lPlIdJTh_dDN0v3-yK-bcMFbclvc3tLDRCJ0WMmocQKNEVq3ZgZmIsxg7qojSdloXmxeLcrgn4lWXUaCgYKATwSARQSFQHGX2MiO_d1bWtZZQNG3EVzVV5bxQ0206",  file_mime_type="application/pdf", parent_folder_id="1YBO4ktfLh1229IsEUkG2YAvfbGIn6QoW"):
+    def __init__(self, file_name, file_data, access_token="ya29.a0AX07Cmt2fEvLDD-t1wMLGJoJ1OKZfMrekaUSF980UF8eVNSmBgsTJJ43Ex5Um8eWg1ltepeIC-4oeS0BHFPyXoZpvqIAMH-iXWUFnFMeYTX07eELfm8UAQTXkSCkUxQ9XV38rGd2G_NUKzF6QKxuagwZCyjzn-v4RV2iDWGGHfNRA7sDdNFikUNIxvtbX0BNQMJ6pdoaCgYKAeYSARQSFQHGX2MiX4Xk9uGK2wbY0Rlt8k9WhQ0206",  file_mime_type="application/pdf", parent_folder_id="1YBO4ktfLh1229IsEUkG2YAvfbGIn6QoW"):
         self.ACCESS_TOKEN = access_token
         self.FILE_MIME_TYPE = file_mime_type
         self.PARENT_FOLDER_ID = parent_folder_id
