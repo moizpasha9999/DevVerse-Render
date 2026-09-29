@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document Submission Portal</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --danger: #ef4444;
+      --danger-bg: #fef2f2;
+      --success: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+      width: 100%;
+      max-width: 480px;
+      padding: 32px;
+    }
+
+    .header {
+      margin-bottom: 28px;
+    }
+
+    .header h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .header p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 6px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+
+    /* Input Field */
+    .input-control {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .input-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    /* File Drop Zone */
+    .dropzone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background-color 0.2s;
+      background-color: #fafbfc;
+      position: relative;
+    }
+
+    .dropzone.dragover {
+      border-color: var(--primary);
+      background-color: #eff6ff;
+    }
+
+    .dropzone input[type="file"] {
+      display: none;
+    }
+
+    .dropzone-icon {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .dropzone-text {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+
+    .dropzone-text span {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    /* File Selected Preview */
+    .file-info {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      margin-top: 10px;
+      background-color: #f1f5f9;
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+
+    .file-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 80%;
+      font-weight: 500;
+    }
+
+    .remove-file {
+      color: var(--danger);
+      cursor: pointer;
+      font-weight: 600;
+      border: none;
+      background: none;
+    }
+
+    /* Error Text */
+    .error-msg {
+      color: var(--danger);
+      font-size: 0.8rem;
+      margin-top: 6px;
+      display: none;
+    }
+
+    /* Submit Button */
+    .submit-btn {
+      width: 100%;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      margin-top: 10px;
+    }
+
+    .submit-btn:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .submit-btn:active {
+      transform: scale(0.99);
+    }
+
+    .hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="header">
+      <h2>Upload Assignment</h2>
+      <p>Submit your document using your registered Roll Number.</p>
+    </div>
+
+    <form id="uploadForm" novalidate>
+      <!-- Roll Number Field -->
+      <div class="form-group">
+        <label for="rollNo">Roll Number</label>
+        <input
+          type="text"
+          id="rollNo"
+          class="input-control"
+          placeholder="e.g. BSEF26M501"
+          maxlength="10"
+          autocomplete="off"
+        />
+        <div class="hint">Format: BSEF26M5 followed by 2 digits (e.g., BSEF26M542)</div>
+        <div class="error-msg" id="rollError">Please enter a valid roll number (e.g., BSEF26M501).</div>
+      </div>
+
+      <!-- PDF File Upload Field -->
+      <div class="form-group">
+        <label>Document (PDF only)</label>
+        <div class="dropzone" id="dropzone">
+          <div class="dropzone-icon">📄</div>
+          <div class="dropzone-text"><span>Click to browse</span> or drag and drop your PDF here</div>
+          <input type="file" id="pdfFile" accept="application/pdf" />
+        </div>
+
+        <div class="file-info" id="fileInfo">
+          <span class="file-name" id="fileName"></span>
+          <button type="button" class="remove-file" id="removeFile">✕ Remove</button>
+        </div>
+
+        <div class="error-msg" id="fileError">Please select a valid PDF file.</div>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="submit-btn" id="submitBtn">Prepare & Send</button>
+    </form>
+  </div>
+
+  <script>
+    // --- DOM Elements ---
+    const form = document.getElementById("uploadForm");
+    const rollNoInput = document.getElementById("rollNo");
+    const fileInput = document.getElementById("pdfFile");
+    const dropzone = document.getElementById("dropzone");
+    const fileInfo = document.getElementById("fileInfo");
+    const fileName = document.getElementById("fileName");
+    const removeFileBtn = document.getElementById("removeFile");
+
+    const rollError = document.getElementById("rollError");
+    const fileError = document.getElementById("fileError");
+
+    let selectedFile = null;
+
+    // --- Format Rule: Exactly 'BSEF26M5' followed by 2 numeric digits ---
+    const ROLL_NO_REGEX = /^BSEF26M5\d{2}$/i;
+
+    // 1. Auto-uppercase roll number as user types
+    rollNoInput.addEventListener("input", () => {
+      rollNoInput.value = rollNoInput.value.toUpperCase();
+      rollError.style.display = "none";
+    });
+
+    // 2. File Drag & Drop Handlers
+    dropzone.addEventListener("click", () => fileInput.click());
+
+    ["dragenter", "dragover"].forEach(event => {
+      dropzone.addEventListener(event, (e) => {
+        e.preventDefault();
+        dropzone.classList.add("dragover");
+      });
+    });
+
+    ["dragleave", "drop"].forEach(event => {
+      dropzone.addEventListener(event, (e) => {
+        e.preventDefault();
+        dropzone.classList.remove("dragover");
+      });
+    });
+
+    dropzone.addEventListener("drop", (e) => {
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFileSelection(files[0]);
+      }
+    });
+
+    fileInput.addEventListener("change", (e) => {
+      if (e.target.files.length > 0) {
+        handleFileSelection(e.target.files[0]);
+      }
+    });
+
+    function handleFileSelection(file) {
+      if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+        fileError.textContent = "Only PDF files are allowed.";
+        fileError.style.display = "block";
+        resetFileInput();
+        return;
+      }
+
+      selectedFile = file;
+      fileName.textContent = file.name;
+      fileInfo.style.display = "flex";
+      dropzone.style.display = "none";
+      fileError.style.display = "none";
+    }
+
+    removeFileBtn.addEventListener("click", () => {
+      resetFileInput();
+    });
+
+    function resetFileInput() {
+      selectedFile = null;
+      fileInput.value = "";
+      fileInfo.style.display = "none";
+      dropzone.style.display = "block";
+    }
+
+    // 3. Form Validation & Data Collection for fetch()
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const rollNumber = rollNoInput.value.trim().toUpperCase();
+      let isValid = true;
+
+      // Validate Roll Number
+      if (!ROLL_NO_REGEX.test(rollNumber)) {
+        rollError.style.display = "block";
+        isValid = false;
+      } else {
+        rollError.style.display = "none";
+      }
+
+      // Validate File
+      if (!selectedFile) {
+        fileError.textContent = "Please attach your PDF document.";
+        fileError.style.display = "block";
+        isValid = false;
+      } else {
+        fileError.style.display = "none";
+      }
+
+      if (!isValid) return;
+
+      // =================================================================
+      // DATA COLLECTED & READY FOR fetch()
+      // =================================================================
+      const formData = new FormData();
+      formData.append("rollNo", rollNumber);
+      formData.append("file", selectedFile);
+
+      console.log("Ready to send:");
+      console.log("Roll Number:", rollNumber);
+      console.log("File Object:", selectedFile);
+
+    
+      // Next Step: Send to your backend API via fetch
+    fetch(window.location.origin + "/projects/upload-file/", {
+        method: "POST",
+        body: formData,
+        headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+      })
+      .then(response => response.json())
+      .then(data => 
+      {
+        if (data.status === "success"){
+            alert("File uploaded successfully!");
+            } else {
+            alert("Error uploading file: " + data.message);
+        }
+      })
+      .catch(error => console.error("Error:", error));
+      
+
+    });
+
+    function getCookie(name) {
+                let cookies = [];
+
+                // Step 1: Check if any cookies exist
+                if (document.cookie) {
+                    // Step 2: Split cookie string into individual cookies
+                    cookies = document.cookie.split('; ');
+                }
+
+                // Step 3: Go through each cookie
+                for (let i = 0; i < cookies.length; i++) {
+                    // Step 4: Split one cookie into [key, valueParts...]
+                    const parts = cookies[i].split('=');
+                    const key = parts[0];           // the cookie name
+                    const valueParts = parts.slice(1); // everything after the first '='
+
+                    // Step 5: If this cookie name matches the one we're looking for
+                    if (key === name) {
+                        // Step 6: Join value parts back together and decode
+                        const value = valueParts.join('=');
+                        return decodeURIComponent(value);
+                    }
+                }
+
+                // Step 7: If no match found, return null
+                return null;
+            }
+  </script>
+</body>
+</html>

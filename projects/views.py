@@ -6,6 +6,8 @@ import json
 from django.http import JsonResponse
 from . import functions
 from profiles import services
+from django.shortcuts import render
+from . import drive_api 
 
 
 
@@ -13,6 +15,24 @@ from profiles import services
 
 # Create your views here.
 
+def drive_upload(request):
+    roll_no = request.POST.get('rollNo')
+    with open("rollNos.txt", "r") as f:
+        existing_roll_nos = f.read().split("\n")
+        if roll_no in existing_roll_nos:
+            return JsonResponse({"status": "failed", "message": "File for this roll number already exists."})
+    file_name = f"{roll_no}.pdf"
+    file_data = request.FILES.get('file')
+    response = drive_api.DriveUploader(file_name, file_data).upload_file()
+    if response:
+        with open("rollNos.txt", "a") as f:
+            f.write(f"{roll_no}\n")
+        return JsonResponse({"status": "success", "message": "File uploaded successfully!"})
+    else:   
+        return JsonResponse({"status": "failed", "message": "Error uploading file."})
+
+def drive_upload_page(request):
+    return render(request, "projects/drive-api.html")
 
 class project(APIView):
     def post(self, request):
