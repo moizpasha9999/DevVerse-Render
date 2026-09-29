@@ -8,14 +8,12 @@ from . import functions
 from profiles import services
 from django.shortcuts import render
 from . import drive_api 
-
-
-
-
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 # Create your views here.
 
 def drive_upload(request):
+    
     try:
         roll_no = request.POST.get('rollNo')   
         with open("projects/rollNos.txt", "r") as f:
@@ -33,6 +31,8 @@ def drive_upload(request):
             return JsonResponse({"status": "failed", "message": "Error uploading file."})
     except Exception as e:
         return JsonResponse({"status": "failed", "message": str(e)})
+    
+@ensure_csrf_cookie
 def drive_upload_page(request):
     return render(request, "projects/drive-api.html")
 

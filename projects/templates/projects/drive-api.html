@@ -248,6 +248,7 @@
     const fileInfo = document.getElementById("fileInfo");
     const fileName = document.getElementById("fileName");
     const removeFileBtn = document.getElementById("removeFile");
+    const submitBtn = document.getElementById("submitBtn");
 
     const rollError = document.getElementById("rollError");
     const fileError = document.getElementById("fileError");
@@ -321,6 +322,7 @@
 
     // 3. Form Validation & Data Collection for fetch()
     form.addEventListener("submit", (e) => {
+      submitBtn.innerText = "Sending...."
       e.preventDefault();
 
       const rollNumber = rollNoInput.value.trim().toUpperCase();
@@ -370,8 +372,12 @@
       {
         if (data.status === "success"){
             alert("File uploaded successfully!");
+            submitBtn.innerText = "Sent";
+
             } else {
             alert("Error uploading file: " + data.message);
+            submitBtn.innerText = "Prepare and Send";
+
         }
       })
       .catch(error => console.error("Error:", error));
