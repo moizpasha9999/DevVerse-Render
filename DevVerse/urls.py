@@ -24,6 +24,8 @@ urlpatterns = [
     path('messages/', include("inbox.urls")),
     path('posts/', include("posts.urls")),
     path('projects/', include("projects.urls")),
+    path('pairs/', include("pairs.urls")),
+    
 ]
 
 

@@ -41,8 +41,10 @@ INSTALLED_APPS = [
     'inbox',
     'posts',
     'profiles',
+    'pairs',
 ]
-
+# Print outgoing emails directly in the VS Code terminal
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

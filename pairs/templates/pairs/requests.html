@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}My Requests | Pairing{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Sent Requests -->
+    <div class="col-lg-7 mb-4">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-send me-2 text-primary"></i>Sent Requests</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0 table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Sent To</th>
+                                <th>Roll No</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for req in sent_requests %}
+                            <tr>
+                                <td class="fw-semibold">{{ req.sent_to.full_name }}</td>
+                                <td>{{ req.sent_to.roll_no }}</td>
+                                <td>
+                                    {% if req.status == 'ACCEPTED' %}
+                                        <span class="badge bg-success-subtle text-success px-3 py-2">
+                                            <i class="bi bi-check-circle me-1"></i>Accepted
+                                        </span>
+                                    {% elif req.status == 'REJECTED' %}
+                                        <span class="badge bg-danger-subtle text-danger px-3 py-2">
+                                            <i class="bi bi-x-circle me-1"></i>Rejected
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-warning-subtle text-warning-emphasis px-3 py-2">
+                                            <i class="bi bi-hourglass-split me-1"></i>Pending
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center py-4 text-muted">You haven't sent any requests yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incoming Requests (To respond and form pairs) -->
+    <div class="col-lg-5 mb-4">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-inbox me-2 text-primary"></i>Incoming Requests</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0 table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>From</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for req in received_requests %}
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">{{ req.sent_by.full_name }}</div>
+                                    <small class="text-muted">Roll: {{ req.sent_by.roll_no }}</small>
+                                </td>
+                                <td class="text-end">
+                                    {% if req.status == 'PENDING' %}
+                                        <form method="POST" action="{% url 'respond_request' req.id 'ACCEPTED' %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-success">Accept</button>
+                                        </form>
+                                        <form method="POST" action="{% url 'respond_request' req.id 'REJECTED' %}" class="d-inline ms-1">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Reject</button>
+                                        </form>
+                                    {% else %}
+                                        <span class="badge bg-light text-secondary">{{ req.status }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="2" class="text-center py-4 text-muted">No incoming requests.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
