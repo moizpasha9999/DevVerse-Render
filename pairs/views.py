@@ -113,10 +113,14 @@ def home_view(request):
     if current_member.id in paired_ids:
         messages.info(request, "You are already paired. You cannot send new requests.")
         available_members = Member.objects.none()  # No available members if already paired
+        
+    
+        
     context = {
         'current_member': current_member,
         'available_members': available_members,
         'requested_ids': list(requested_ids),
+        'partner': current_member.get_other_member().full_name if current_member.get_other_member() else None,
     }
     return render(request, 'pairs/home.html', context)
 

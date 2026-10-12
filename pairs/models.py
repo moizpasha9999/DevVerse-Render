@@ -1,26 +1,46 @@
 from django.db import models
-
-# Create your models here.
-from django.db import models
+from django.db.models import Q
 
 class Member(models.Model):
     full_name = models.CharField(max_length=150)
     phone = models.CharField(max_length=20)
     email_id = models.EmailField(unique=True)
     roll_no = models.CharField(max_length=50, unique=True)
+    
+    def get_other_member(self):
+        pair = Pair.objects.filter(
+            Q(member_1=self) | Q(member_2=self)
+        ).first()
+
+        if pair is None:
+            return None
+
+        if pair.member_1_id == self.id:
+            return pair.member_2
+
+        return pair.member_1
 
     def __str__(self):
         return f"{self.full_name} ({self.roll_no})"
 
 
 class Pair(models.Model):
-    member_1 = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='pair_member_1')
-    member_2 = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='pair_member_2')
+    member_1 = models.ForeignKey(
+        Member,
+        on_delete=models.CASCADE,
+        related_name='pair_member_1',
+        unique=True
+    )
+    member_2 = models.ForeignKey(
+        Member,
+        on_delete=models.CASCADE,
+        related_name='pair_member_2',
+        unique=True
+    )
     date = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return f"Pair: {self.member_1.full_name} & {self.member_2.full_name}"
-
 
 class Request(models.Model):
     STATUS_CHOICES = [
