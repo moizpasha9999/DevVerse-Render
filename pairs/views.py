@@ -110,7 +110,9 @@ def home_view(request):
         sent_by=current_member,
         status='PENDING'
     ).values_list('sent_to_id', flat=True)
-
+    if current_member.id in paired_ids:
+        messages.info(request, "You are already paired. You cannot send new requests.")
+        available_members = Member.objects.none()  # No available members if already paired
     context = {
         'current_member': current_member,
         'available_members': available_members,
