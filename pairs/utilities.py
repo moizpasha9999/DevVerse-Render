@@ -1,3 +1,4 @@
+from django.apps import apps
 from django.db import transaction
 from .models import Member
 
@@ -359,6 +360,7 @@ STUDENTS_DATA = [
 ]
 
 def populate_members(data=None, default_phone="N/A"):
+    
     """
     Populates or updates the Member table with student records.
     
@@ -394,3 +396,13 @@ def populate_members(data=None, default_phone="N/A"):
 
     print(f"Done! Created: {created_count}, Updated: {updated_count}")
     return created_count, updated_count
+
+
+def flush_database():
+
+    # Target your specific app
+    my_app = apps.get_app_config('pairs')
+
+    # Loop through and delete all rows from each model
+    for model in my_app.get_models():
+        model.objects.all().delete()
