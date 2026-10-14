@@ -28,16 +28,21 @@ class Pair(models.Model):
     member_1 = models.ForeignKey(
         Member,
         on_delete=models.CASCADE,
-        related_name='pair_member_1',
-        unique=True
+        related_name='pair_member_1'
     )
     member_2 = models.ForeignKey(
         Member,
         on_delete=models.CASCADE,
-        related_name='pair_member_2',
-        unique=True
+        related_name='pair_member_2'
     )
     date = models.DateField(auto_now_add=True)
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['member_1', 'member_2'],
+                name='unique_pair'
+            )
+        ]
 
     def __str__(self):
         return f"Pair: {self.member_1.full_name} & {self.member_2.full_name}"

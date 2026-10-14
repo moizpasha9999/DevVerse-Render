@@ -1,6 +1,7 @@
 from django.apps import apps
 from django.db import transaction
-from .models import Member
+from .models import Member, Request
+from django.db.models import Q
 
 STUDENTS_DATA = [
     {
@@ -406,3 +407,11 @@ def flush_database():
     # Loop through and delete all rows from each model
     for model in my_app.get_models():
         model.objects.all().delete()
+
+def get_requests(roll_no):
+    member = Member.objects.filter(roll_no=roll_no).first()
+    if not member:
+        return None, None   
+    requests = Request.objects.filter(Q(sent_by=member) | Q(sent_to=member))
+    for request in requests:
+        print(f"Request: {request.sent_by.roll_no} -> {request.sent_to.roll_no} ({request.status})")
